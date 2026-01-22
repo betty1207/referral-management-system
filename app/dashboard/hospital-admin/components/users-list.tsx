@@ -35,6 +35,7 @@ export function UsersList() {
   const { user } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
@@ -45,6 +46,15 @@ export function UsersList() {
     password: "",
     role: "DOCTOR",
     department: "General",
+  })
+  
+  // Edit states
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [editFormData, setEditFormData] = useState({
+    fullName: "",
+    email: "",
+    role: "DOCTOR",
+    isActive: true,
   })
 
   // Fetch users function
@@ -75,6 +85,7 @@ export function UsersList() {
           email: u.email,
           role: u.role === "DOCTOR" ? "Doctor" : 
                 u.role === "LIAISON_OFFICER" ? "Liaison Officer" : u.role,
+          backendRole: u.role, // Keep original for editing
           department: u.department || "General",
           status: u.isActive ? "Active" : "Inactive",
           isActive: u.isActive
@@ -99,6 +110,7 @@ export function UsersList() {
     fetchUsers()
   }, [user?.token])
 
+  // Add user
   const handleAddUser = async () => {
     if (!formData.fullName || !formData.email || !formData.password || !user?.token || !user?.hospitalId) {
       setError("Please fill in all fields")
@@ -145,6 +157,7 @@ export function UsersList() {
     }
   }
 
+  // Delete user
   const handleDeleteUser = async (userId: string) => {
     console.log("🗑️ Deleting user:", userId)
     
@@ -178,47 +191,87 @@ export function UsersList() {
     }
   }
 
-  const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
-    console.log("✏️ Updating user:", userId, updates)
-    
-    if (!user?.token) {
-      setError("No authentication token")
+  // Open edit dialog
+  const handleEditClick = (userItem: User) => {
+    console.log("✏️ Opening edit for:", userItem.fullName)
+    setEditingUser(userItem)
+    setEditFormData({
+      fullName: userItem.fullName,
+      email: userItem.email,
+      role: userItem.role === "Doctor" ? "DOCTOR" : "LIAISON_OFFICER",
+      isActive: userItem.isActive || true
+    })
+    setIsEditOpen(true)
+  }
+
+  // Save edited user
+  const handleSaveEdit = async () => {
+    if (!editingUser?._id || !user?.token) {
+      setError("Cannot save edit")
       return
     }
 
     try {
+      setIsSubmitting(true)
       setError("")
       
-      // Prepare update data - only send what backend expects
-      const updateData: any = {}
-      if (updates.isActive !== undefined) {
-        updateData.isActive = updates.isActive
+      // Prepare update data
+      const updateData: any = {
+        fullName: editFormData.fullName,
+        isActive: editFormData.isActive
       }
       
+<<<<<<< HEAD
       console.log("Sending update:", updateData)
       const response = await apiClient.updateUser(userId, updateData)
 
       console.log("Update response:", response)
+=======
+      console.log("💾 Saving edit for user:", editingUser._id)
+      console.log("📝 Update data:", updateData)
+      
+      const response = await userApi.updateUser(editingUser._id, updateData, user.token)
+      console.log("Edit API response:", response)
+>>>>>>> 738c3572ea5facf667cbf6b9cb818cf5297396fa
 
-      if (response.success && response.data) {
-        // Update UI state
+      if (response.success) {
+        console.log("✅ Edit successful")
+        
+        // Update local state
         setUsers(prevUsers => 
-          prevUsers.map(u => 
-            u._id === userId 
-              ? { 
-                  ...u, 
-                  isActive: updates.isActive,
-                  status: updates.isActive ? "Active" : "Inactive"
-                }
-              : u
-          )
+          prevUsers.map(u => {
+            if (u._id === editingUser._id) {
+              return {
+                ...u,
+                fullName: editFormData.fullName,
+                email: editFormData.email,
+                role: editFormData.role === "DOCTOR" ? "Doctor" : "Liaison Officer",
+                status: editFormData.isActive ? "Active" : "Inactive",
+                isActive: editFormData.isActive
+              }
+            }
+            return u
+          })
         )
+        
+        // Close dialog and reset
+        setIsEditOpen(false)
+        setEditingUser(null)
+        setEditFormData({
+          fullName: "",
+          email: "",
+          role: "DOCTOR",
+          isActive: true
+        })
       } else {
+        console.log("❌ Edit failed:", response.error)
         setError(response.error || "Failed to update user")
       }
     } catch (err) {
-      console.error("Update error:", err)
+      console.error("🔥 Edit error:", err)
       setError("Failed to update user")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -306,6 +359,87 @@ export function UsersList() {
         </Dialog>
       </div>
 
+      {/* Edit User Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>Update user information</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {error && <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>}
+            <div>
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                placeholder="Enter full name"
+                value={editFormData.fullName}
+                onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                placeholder="Enter email address"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-role">Role</Label>
+              <Select 
+                value={editFormData.role} 
+                onValueChange={(value) => setEditFormData({...editFormData, role: value})}
+              >
+                <SelectTrigger id="edit-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DOCTOR">Doctor</SelectItem>
+                  <SelectItem value="LIAISON_OFFICER">Liaison Officer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-status">Status</Label>
+              <Select 
+                value={editFormData.isActive ? "active" : "inactive"} 
+                onValueChange={(value) => setEditFormData({...editFormData, isActive: value === "active"})}
+              >
+                <SelectTrigger id="edit-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSaveEdit}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsEditOpen(false)
+                  setEditingUser(null)
+                }}
+                className="flex-1"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Hospital Staff</CardTitle>
@@ -355,10 +489,7 @@ export function UsersList() {
                             variant="ghost" 
                             size="sm" 
                             className="h-8 w-8 p-0"
-                            onClick={() => {
-                              const newStatus = !userItem.isActive
-                              handleUpdateUser(userItem._id!, { isActive: newStatus })
-                            }}
+                            onClick={() => handleEditClick(userItem)}
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>

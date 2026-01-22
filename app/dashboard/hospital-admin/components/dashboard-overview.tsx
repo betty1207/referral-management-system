@@ -16,14 +16,11 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import { useAuth } from "@/lib/auth-context"
+import { userApi } from "@/lib/api-client"
+import { useState, useEffect } from "react"
 
-const stats = [
-  { label: "Total Doctors", value: "24", change: "+3 this month" },
-  { label: "Total Liaisons", value: "8", change: "+1 this month" },
-  { label: "Active Referrals", value: "156", change: "+12 today" },
-  { label: "Completed Referrals", value: "2,843", change: "+89 this month" },
-]
-
+// Mock data for charts (keep these as they are)
 const referralTrends = [
   { month: "Jan", referrals: 45, completed: 35 },
   { month: "Feb", referrals: 52, completed: 42 },
@@ -49,6 +46,63 @@ const referralStatus = [
 ]
 
 export function DashboardOverview() {
+  const { user } = useAuth()
+  const [stats, setStats] = useState([
+    { label: "Total Doctors", value: "0", change: "+0 this month" },
+    { label: "Total Liaisons", value: "0", change: "+0 this month" },
+    { label: "Active Referrals", value: "156", change: "+12 today" },
+    { label: "Completed Referrals", value: "2,843", change: "+89 this month" },
+  ])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!user?.token) {
+        console.log("[Dashboard] Missing token")
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        const response = await userApi.getUsers(user.token)
+        console.log("[Dashboard] Users response:", response)
+
+        if (response.success && response.data) {
+          const users = Array.isArray(response.data) ? response.data : []
+          
+          // Count doctors and liaisons
+          const doctorCount = users.filter(u => u.role === "DOCTOR").length
+          const liaisonCount = users.filter(u => u.role === "LIAISON_OFFICER").length
+          
+          // Update stats with real data
+          setStats([
+            { 
+              label: "Total Doctors", 
+              value: doctorCount.toString(), 
+              change: doctorCount > 0 ? `+${doctorCount} total` : "No doctors yet" 
+            },
+            { 
+              label: "Total Liaisons", 
+              value: liaisonCount.toString(), 
+              change: liaisonCount > 0 ? `+${liaisonCount} total` : "No liaisons yet" 
+            },
+            { label: "Active Referrals", value: "156", change: "+12 today" },
+            { label: "Completed Referrals", value: "2,843", change: "+89 this month" },
+          ])
+        } else {
+          console.log("[Dashboard] Failed to fetch users:", response.error)
+        }
+      } catch (err) {
+        console.error("[Dashboard] Error fetching users:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserStats()
+  }, [user?.token])
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -56,13 +110,15 @@ export function DashboardOverview() {
         {stats.map((stat, index) => (
           <Card
             key={index}
-            className="bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-950 dark:to-teal-950 border-green-200 dark:border-green-800"
+            className="bg-linear-to-br from-green-50 to-teal-50 dark:from-green-950 dark:to-teal-950 border-green-200 dark:border-green-800"
           >
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stat.value}</div>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {isLoading && (index === 0 || index === 1) ? "..." : stat.value}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
             </CardContent>
           </Card>
