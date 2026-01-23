@@ -1,102 +1,199 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-
-const stats = [
-  { label: "Pending Approvals", value: "23", change: "Requires action", color: "bg-orange-100 text-orange-800" },
-  { label: "Approved This Week", value: "45", change: "+12 from last week", color: "bg-green-100 text-green-800" },
-  { label: "Rejected", value: "8", change: "Needs review", color: "bg-red-100 text-red-800" },
-  { label: "Completed Referrals", value: "156", change: "This month", color: "bg-blue-100 text-blue-800" },
-]
-
-const referralTrends = [
-  { week: "Week 1", received: 45, approved: 35, rejected: 5 },
-  { week: "Week 2", received: 52, approved: 42, rejected: 4 },
-  { week: "Week 3", received: 38, approved: 32, rejected: 3 },
-  { week: "Week 4", received: 61, approved: 50, rejected: 7 },
-]
-
-const turnaroundMetrics = [
-  { name: "Emergency", avgTime: "2 hours" },
-  { name: "Urgent", avgTime: "8 hours" },
-  { name: "Routine", avgTime: "24 hours" },
-]
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { 
+  ClipboardCheck, 
+  Clock, 
+  CheckCircle, 
+  XCircle,
+  ArrowUpRight,
+  AlertCircle
+} from "lucide-react"
 
 export function DashboardOverview() {
+  // Mock data - we'll replace with real data later
+  const stats = [
+    { title: "Pending Review", value: "5", icon: Clock, color: "text-amber-600", bgColor: "bg-amber-50" },
+    { title: "Approved Today", value: "3", icon: CheckCircle, color: "text-green-600", bgColor: "bg-green-50" },
+    { title: "Rejected Today", value: "1", icon: XCircle, color: "text-red-600", bgColor: "bg-red-50" },
+    { title: "Awaiting Response", value: "2", icon: AlertCircle, color: "text-blue-600", bgColor: "bg-blue-50" },
+  ]
+
+  const recentActivity = [
+    { id: 1, action: "Approved referral", patient: "John Doe", time: "10:30 AM", type: "incoming" },
+    { id: 2, action: "Sent to Hospital B", patient: "Jane Smith", time: "9:45 AM", type: "outgoing" },
+    { id: 3, action: "Referred to Cardiology", patient: "Mike Johnson", time: "Yesterday", type: "incoming" },
+    { id: 4, action: "Received from Hospital C", patient: "Sarah Williams", time: "Yesterday", type: "incoming" },
+  ]
+
+  const quickActions = [
+    { label: "Review Pending", count: 5, action: "review" },
+    { label: "Follow-up Needed", count: 2, action: "followup" },
+    { label: "Generate Reports", count: null, action: "reports" },
+  ]
+
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index} className="border-l-4 border-l-purple-600">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard Overview</h1>
+        <p className="text-gray-600">Welcome back! Here's what's happening with referrals.</p>
       </div>
 
-      {/* Referral Approval Trends */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Weekly Approval Trends</CardTitle>
-          <CardDescription>Referrals received and approved</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={referralTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="week" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="received" fill="#9333ea" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="approved" fill="#10b981" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="rejected" fill="#ef4444" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <Card key={stat.title} className="border-none shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold mt-2">{stat.value}</p>
+                  </div>
+                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
+                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
 
-      {/* Turnaround Time & Key Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Average Turnaround Time</CardTitle>
-            <CardDescription>By priority level</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {turnaroundMetrics.map((metric, index) => (
-              <div key={index} className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                <span className="font-medium">{metric.name}</span>
-                <Badge variant="outline">{metric.avgTime}</Badge>
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Quick Actions */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardCheck className="w-5 h-5" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {quickActions.map((action) => (
+                  <div 
+                    key={action.label}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="font-medium">{action.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {action.count !== null && (
+                        <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
+                          {action.count}
+                        </span>
+                      )}
+                      <ArrowUpRight className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </CardContent>
-        </Card>
+              <Button className="w-full mt-4" variant="outline">
+                View All Actions
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Performance Overview</CardTitle>
-            <CardDescription>Your approval metrics</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-sm font-medium text-green-900">Approval Rate</p>
-              <p className="text-2xl font-bold text-green-600">85%</p>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm font-medium text-blue-900">Avg Response Time</p>
-              <p className="text-2xl font-bold text-blue-600">6.5 hrs</p>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 pb-4 border-b last:border-0">
+                    <div className={`mt-1 p-2 rounded-full ${
+                      activity.type === 'incoming' ? 'bg-green-100' : 'bg-blue-100'
+                    }`}>
+                      {activity.type === 'incoming' ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <ArrowUpRight className="w-4 h-4 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{activity.action}</p>
+                      <p className="text-sm text-gray-600">{activity.patient}</p>
+                    </div>
+                    <span className="text-sm text-gray-500">{activity.time}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Performance */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Today's Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Approval Rate</span>
+                    <span className="font-semibold">75%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Response Time</span>
+                    <span className="font-semibold">2.4h</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Completion Rate</span>
+                    <span className="font-semibold">92%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-purple-600 h-2 rounded-full" style={{ width: '92%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Need Attention</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                  <span className="text-sm font-medium">Urgent: Patient waiting</span>
+                  <Button size="sm" variant="destructive">Review</Button>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-amber-50 rounded-lg">
+                  <span className="text-sm font-medium">Missing documents</span>
+                  <Button size="sm" variant="outline">Request</Button>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                  <span className="text-sm font-medium">Follow-up due</span>
+                  <Button size="sm" variant="outline">Schedule</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
