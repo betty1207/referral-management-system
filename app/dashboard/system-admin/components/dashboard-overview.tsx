@@ -1,147 +1,134 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api-client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts"
-
-const stats = [
-  { label: "Total Facilities", value: "324", change: "+12 this month" },
-  { label: "Total Users", value: "2,847", change: "+156 this month" },
-  { label: "Active Referrals", value: "1,245", change: "+89 today" },
-  { label: "Completed Referrals", value: "8,932", change: "+234 this month" },
-]
-
-const referralTrends = [
-  { month: "Jan", referrals: 400, completed: 240 },
-  { month: "Feb", referrals: 450, completed: 280 },
-  { month: "Mar", referrals: 520, completed: 340 },
-  { month: "Apr", referrals: 610, completed: 420 },
-  { month: "May", referrals: 680, completed: 520 },
-  { month: "Jun", referrals: 750, completed: 600 },
-]
-
-const facilityUtilization = [
-  { name: "General Hospital A", value: 280 },
-  { name: "Regional Center B", value: 240 },
-  { name: "Specialist Clinic C", value: 180 },
-  { name: "Emergency Center D", value: 220 },
-  { name: "Others", value: 150 },
-]
-
-const referralStatus = [
-  { name: "Approved", value: 4500, fill: "#10b981" },
-  { name: "Pending", value: 1245, fill: "#f59e0b" },
-  { name: "Rejected", value: 800, fill: "#ef4444" },
-  { name: "Completed", value: 8932, fill: "#3b82f6" },
-]
-
-const COLORS = ["#10b981", "#f59e0b", "#ef4444", "#3b82f6"]
+import { Hospital, Users, Activity } from "lucide-react"
 
 export function DashboardOverview() {
+  const [stats, setStats] = useState({
+    hospitals: 0,
+    hospitalAdmins: 0,
+    doctors: 0,
+    liaisonOfficers: 0,
+    isLoading: true,
+  })
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStats((prev) => ({ ...prev, isLoading: true }))
+
+        // Fetch hospitals
+        const hospitalsResponse = await apiClient.getHospitals()
+        const hospitalsData = hospitalsResponse.data || hospitalsResponse
+        const hospitalsCount = Array.isArray(hospitalsData) ? hospitalsData.length : 0
+
+        // Fetch users
+        const usersResponse = await apiClient.getUsers()
+        const usersData = usersResponse.data || usersResponse
+        const allUsers = Array.isArray(usersData) ? usersData : []
+
+        const hospitalAdminsCount = allUsers.filter((u: any) => u.role === "HOSPITAL_ADMIN").length
+        const doctorsCount = allUsers.filter((u: any) => u.role === "DOCTOR").length
+        const liaisonOfficersCount = allUsers.filter((u: any) => u.role === "LIAISON_OFFICER").length
+
+        setStats({
+          hospitals: hospitalsCount,
+          hospitalAdmins: hospitalAdminsCount,
+          doctors: doctorsCount,
+          liaisonOfficers: liaisonOfficersCount,
+          isLoading: false,
+        })
+      } catch (err) {
+        console.error("Error fetching stats:", err)
+        setStats((prev) => ({ ...prev, isLoading: false }))
+      }
+    }
+
+    fetchStats()
+  }, [])
+
+  const statCards = [
+    {
+      label: "Total Hospitals",
+      value: stats.hospitals,
+      icon: Hospital,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      label: "Hospital Admins",
+      value: stats.hospitalAdmins,
+      icon: Users,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      label: "Doctors",
+      value: stats.doctors,
+      icon: Users,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      label: "Liaison Officers",
+      value: stats.liaisonOfficers,
+      icon: Activity,
+      color: "bg-orange-100 text-orange-600",
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      <div>
+        <h2 className="text-2xl font-bold">System Overview</h2>
+        <p className="text-muted-foreground">Welcome to the System Admin Dashboard</p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <Card
-            key={index}
-            className="bg-gradient-to-br from-blue-50 to-teal-50 dark:from-blue-950 dark:to-teal-950 border-blue-200 dark:border-blue-800"
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {statCards.map((stat, index) => {
+          const Icon = stat.icon
+          return (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.label}
+                </CardTitle>
+                <div className={`p-2 rounded-lg ${stat.color}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {stats.isLoading ? "..." : stat.value}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Referral Trends */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-lg">Referral Trends</CardTitle>
-            <CardDescription>Last 6 months</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={referralTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="referrals" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="completed" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Referral Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Referral Status Distribution</CardTitle>
-            <CardDescription>Current status breakdown</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={referralStatus}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {referralStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Facility Utilization */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Top Facilities by Referral Volume</CardTitle>
-          <CardDescription>Current month</CardDescription>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common tasks for system administrators</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={facilityUtilization}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-semibold mb-2">Manage Hospitals</h3>
+              <p className="text-sm text-muted-foreground">
+                View and manage all hospitals in the system
+              </p>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-semibold mb-2">User Management</h3>
+              <p className="text-sm text-muted-foreground">
+                Create and manage users (Hospital Admins, Doctors, Liaison Officers)
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
   )
 }
+

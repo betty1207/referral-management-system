@@ -17,7 +17,7 @@ import {
   Cell,
 } from "recharts"
 import { useAuth } from "@/lib/auth-context"
-import { userApi } from "@/lib/api-client"
+import { apiClient } from "@/lib/api-client"
 import { useState, useEffect } from "react"
 
 // Mock data for charts (keep these as they are)
@@ -65,34 +65,46 @@ export function DashboardOverview() {
 
       try {
         setIsLoading(true)
-        const response = await userApi.getUsers(user.token)
+        const response = await apiClient.getUsers({ hospitalId: user.hospitalId })
         console.log("[Dashboard] Users response:", response)
 
-        if (response.success && response.data) {
-          const users = Array.isArray(response.data) ? response.data : []
-          
-          // Count doctors and liaisons
-          const doctorCount = users.filter(u => u.role === "DOCTOR").length
-          const liaisonCount = users.filter(u => u.role === "LIAISON_OFFICER").length
-          
-          // Update stats with real data
-          setStats([
-            { 
-              label: "Total Doctors", 
-              value: doctorCount.toString(), 
-              change: doctorCount > 0 ? `+${doctorCount} total` : "No doctors yet" 
-            },
-            { 
-              label: "Total Liaisons", 
-              value: liaisonCount.toString(), 
-              change: liaisonCount > 0 ? `+${liaisonCount} total` : "No liaisons yet" 
-            },
-            { label: "Active Referrals", value: "156", change: "+12 today" },
-            { label: "Completed Referrals", value: "2,843", change: "+89 this month" },
-          ])
-        } else {
-          console.log("[Dashboard] Failed to fetch users:", response.error)
+        const userData = response.data || response
+        const users = Array.isArray(userData) ? userData : []
+        
+        // Count doctors and liaisons
+        const doctorCount = users.filter((u: any) => u.role === "DOCTOR").length
+        const liaisonCount = users.filter((u: any) => u.role === "LIAISON_OFFICER").length
+        
+        // Fetch referrals for stats
+        let activeReferrals = 0
+        let completedReferrals = 0
+        try {
+          const referralsResponse = await apiClient.getAllReferrals({ hospitalId: user.hospitalId })
+          const referralsData = referralsResponse.data || referralsResponse
+          const referrals = Array.isArray(referralsData) ? referralsData : []
+          activeReferrals = referrals.filter((r: any) => 
+            r.status === "PENDING" || r.status === "DRAFT" || r.status === "APPROVED"
+          ).length
+          completedReferrals = referrals.filter((r: any) => r.status === "COMPLETED").length
+        } catch (err) {
+          console.error("[Dashboard] Error fetching referrals:", err)
         }
+        
+        // Update stats with real data
+        setStats([
+          { 
+            label: "Total Doctors", 
+            value: doctorCount.toString(), 
+            change: doctorCount > 0 ? `${doctorCount} total` : "No doctors yet" 
+          },
+          { 
+            label: "Total Liaisons", 
+            value: liaisonCount.toString(), 
+            change: liaisonCount > 0 ? `${liaisonCount} total` : "No liaisons yet" 
+          },
+          { label: "Active Referrals", value: activeReferrals.toString(), change: "Currently active" },
+          { label: "Completed Referrals", value: completedReferrals.toString(), change: "Total completed" },
+        ])
       } catch (err) {
         console.error("[Dashboard] Error fetching users:", err)
       } finally {

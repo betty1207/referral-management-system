@@ -109,6 +109,16 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
     }
   }
 
+  const filteredReferrals = referrals.filter((referral) => {
+    if (!searchTerm) return true
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      referral.patientName?.toLowerCase().includes(searchLower) ||
+      referral._id?.toLowerCase().includes(searchLower) ||
+      getHospitalName(referral.fromHospital).toLowerCase().includes(searchLower)
+    )
+  })
+
   return (
     <div className="space-y-6">
       {/* Header */}

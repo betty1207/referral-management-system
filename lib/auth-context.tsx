@@ -3,6 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { apiClient } from "@/lib/api-client"
 
 type UserRole = "system-admin" | "hospital-admin" | "liaison" | "doctor"
 
@@ -50,6 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const parsedUser = JSON.parse(storedUser)
         console.log("[Auth] Setting user from storage:", parsedUser)
         setUser(parsedUser)
+        
+        // Sync token to apiClient if user has a token
+        if (parsedUser.token) {
+          apiClient.setToken(parsedUser.token)
+          localStorage.setItem("token", parsedUser.token)
+          console.log("[Auth] Token synced to apiClient from stored user")
+        }
       } catch (error) {
         console.error("[Auth] Failed to parse user data:", error)
         sessionStorage.removeItem("user")
@@ -62,6 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("[Auth] Logging in user:", userData)
     sessionStorage.setItem("user", JSON.stringify(userData))
     setUser(userData)
+    
+    // Sync token to apiClient
+    if (userData.token) {
+      apiClient.setToken(userData.token)
+      localStorage.setItem("token", userData.token)
+      console.log("[Auth] Token synced to apiClient on login")
+    }
   }
 
   const logout = () => {

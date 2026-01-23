@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 
 type UserRole = "system-admin" | "hospital-admin" | "liaison" | "doctor"
@@ -114,6 +115,12 @@ export default function LoginPage() {
       }
 
       console.log("💾 Storing user data:", userData)
+      
+      // Set token in apiClient and localStorage
+      apiClient.setToken(token)
+      localStorage.setItem("token", token)
+      console.log("✅ Token set in apiClient")
+      
       login(userData)
 
       // Redirect based on actual role

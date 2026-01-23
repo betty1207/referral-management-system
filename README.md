@@ -1,0 +1,174 @@
+# Med_Link – Frontend (Next.js)
+
+## 📌 Project Overview
+
+**Med_Link** is a healthcare referral management system designed to streamline patient referrals between healthcare facilities. This repository contains the **Frontend** application, built with **Next.js**, **TypeScript**, and **Tailwind CSS**, providing a modern, responsive, and secure user interface for all system users.
+
+The frontend communicates with the Med_Link backend via REST APIs to support referral creation, review, approval, tracking, and reporting.
+
+---
+
+## 🏗️ Tech Stack
+
+* **Framework:** Next.js (React)
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS
+* **State Management:** React Hooks / Context API (as needed)
+* **Authentication:** JWT-based authentication (via backend)
+* **API Communication:** Axios / Fetch API
+
+---
+
+## 👥 User Roles Supported
+
+The frontend UI is role-based and supports the following actors:
+
+* Doctor (Referral Sender)
+* Referral Board / Board Member
+* Health Officer / Referral Officer
+* Receiving Doctor
+* Receiving Registrar Clerk (Reception)
+* System Administrator
+
+Each role has access only to features permitted by role-based access control (RBAC).
+
+---
+
+## ✨ Key Features
+
+* Secure user authentication and login
+* Patient registration and record retrieval
+* Referral creation with medical attachments
+* Referral review, approval, or rejection
+* Referral status tracking
+* QR code display and verification
+* Receiving facility referral acceptance and completion
+* Administrative dashboards and reports
+* Responsive UI for desktop and tablet use
+
+---
+
+## 📂 Project Structure
+
+```bash
+med_link_frontend/
+├── app/                # Next.js App Router
+│   ├── auth/           # Login & authentication pages
+│   ├── dashboard/      # Role-based dashboards
+│   ├── referrals/      # Referral-related pages
+│   ├── patients/       # Patient management pages
+│   └── layout.tsx      # Root layout
+├── components/         # Reusable UI components
+├── services/           # API service functions
+├── types/              # TypeScript interfaces & models
+├── utils/              # Utility/helper functions
+├── public/             # Static assets
+├── styles/             # Global styles
+└── tailwind.config.ts  # Tailwind configuration
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1️⃣ Prerequisites
+
+Ensure you have the following installed:
+
+* Node.js (v18 or later)
+* npm or yarn
+
+---
+
+### 2️⃣ Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/med_link_frontend.git
+
+# Navigate into the project directory
+cd med_link_frontend
+
+# Install dependencies
+npm install
+```
+
+---
+
+### 3️⃣ Running the Development Server
+
+```bash
+npm run dev
+```
+
+The application will be available at:
+
+```
+http://localhost:3000
+```
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env.local` file in the project root:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
+```
+
+---
+
+## 🧪 Scripts
+
+```bash
+npm run dev       # Start development server
+npm run build     # Build for production
+npm run start     # Start production server
+npm run lint      # Run ESLint
+```
+
+---
+
+## 🎨 UI & Design
+
+* Tailwind CSS is used for styling
+* Mobile-first and responsive design
+* Accessible components following best practices
+
+---
+
+## 📄 Documentation
+
+This frontend is developed based on:
+
+* Functional Requirements (FREQ-1 to FREQ-22)
+* Use Case Diagrams & Documentation
+* Activity, Sequence, and State Chart Diagrams
+* Analysis Class Model
+
+---
+
+## 🤝 Contribution
+
+1. Fork the repository
+2. Create a feature branch (`feature/your-feature`)
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+---
+
+## 📜 License
+
+This project is developed for academic purposes as part of the **Med_Link Referral Management System**.
+
+---
+
+## 📧 Contact
+
+For questions or collaboration, please contact the project owner.
+
+---
+
+✅ **Med_Link Frontend – Building connected healthcare systems**
