@@ -245,11 +245,8 @@ export function CreateReferral() {
       // Debug log to see what we're sending
       console.log("[Save Draft] Sending payload:", JSON.stringify(referralPayload, null, 2))
 
-      // Call the draft endpoint - adjust the endpoint based on your API
-      // If you have a separate endpoint for drafts, use it:
-      // Example: await apiClient.post('/referrals/draft', referralPayload)
-      // Otherwise use the regular create endpoint with status=DRAFT
-      const response = await apiClient.post('/referrals/draft', referralPayload)
+      // Use the regular create endpoint - backend automatically creates as DRAFT
+      const response = await apiClient.createReferral(referralPayload)
       
       console.log("[Save Draft] Response:", response)
       

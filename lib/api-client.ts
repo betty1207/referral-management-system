@@ -349,6 +349,11 @@ class ApiClient {
     return this.patch<any>(`/referrals/${referralId}/send`, { targetHospitalId })
   }
 
+  // Liaison Officer methods
+  async getLiaisonOutbox() {
+    return this.get<any>("/referrals/liaison/outbox")
+  }
+
   async unlockReferral(referralId: string, otp: string) {
     return this.post<any>(`/referrals/${referralId}/unlock`, { otp })
   }
