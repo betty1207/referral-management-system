@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { apiClient } from "@/lib/api-client1"
+import { apiClient } from "@/lib/api-client"
 
 type UserRole = "system-admin" | "hospital-admin" | "liaison" | "doctor"
 

@@ -5,7 +5,7 @@ import React from "react"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { useRouter } from "next/navigation"
-import { apiClient } from "@/lib/api-client1"
+import { apiClient } from "@/lib/api-client"
 
 export interface User {
   _id: string

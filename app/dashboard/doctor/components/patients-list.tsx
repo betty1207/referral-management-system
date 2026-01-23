@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { apiClient } from "@/lib/api-client1"
+import { apiClient } from "@/lib/api-client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -69,8 +69,9 @@ export function PatientsList() {
     setError("")
 
     try {
-      // Try searching by phone first
-      const response = await apiClient.searchPatients({ phone: searchQuery })
+      const q = searchQuery.trim()
+      // Search broadly (backend should OR-match whatever it supports)
+      const response = await apiClient.searchPatients({ phone: q, nationalId: q, fullName: q })
       const patientsData = response.data || response
       const patientsList = Array.isArray(patientsData) ? patientsData : []
       setPatients(patientsList)

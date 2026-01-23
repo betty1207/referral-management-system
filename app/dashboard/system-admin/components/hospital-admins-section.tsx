@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { apiClient } from "@/lib/api-client1"
+import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context" // Import useAuth to get token
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -76,7 +76,7 @@ export function HospitalAdminsSection({ hospitalId }: { hospitalId: string }) {
       } else if (response.users && Array.isArray(response.users)) {
         // If response has users property
         adminsData = response.users
-        if (response.meta) {
+      if (response.meta) {
           metaData = response.meta
         }
       }
@@ -104,7 +104,7 @@ export function HospitalAdminsSection({ hospitalId }: { hospitalId: string }) {
 
   useEffect(() => {
     if (hospitalId) {
-      fetchAdmins(0)
+    fetchAdmins(0)
     }
   }, [hospitalId])
 

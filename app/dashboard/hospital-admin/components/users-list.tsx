@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit2, Trash2 } from "lucide-react"
+import { Plus, Edit2, Trash2, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import {
   Dialog,
@@ -16,277 +16,157 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
-import { apiClient } from "@/lib/api-client1"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface User {
-  _id?: string
-  id?: string
+  _id: string
   fullName: string
   email: string
   role: string
-  hospitalId?: string
-  department?: string
-  status?: string
-  isActive?: boolean
+  isActive: boolean
 }
 
 export function UsersList() {
   const { user } = useAuth()
   const [users, setUsers] = useState<User[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
   const [error, setError] = useState("")
+  const [isOpen, setIsOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
     role: "DOCTOR",
-    department: "General",
-  })
-  
-  // Edit states
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [editFormData, setEditFormData] = useState({
-    fullName: "",
-    email: "",
-    role: "DOCTOR",
-    isActive: true,
   })
 
-  // Fetch users function
   const fetchUsers = async () => {
     if (!user?.token) {
-      console.log("[UsersList] Missing token")
+      setError("Authentication token missing. Please log in again.")
       setIsLoading(false)
       return
     }
 
     try {
       setIsLoading(true)
-      const response = await apiClient.getUsers()
-
-      console.log("[UsersList] Fetch response:", response)
-
-      if (response.success && response.data) {
-        const filteredUsers = Array.isArray(response.data)
-          ? response.data.filter((u: any) => 
-              u.role === "DOCTOR" || u.role === "LIAISON_OFFICER"
-            )
-          : []
-        
-        const formattedUsers = filteredUsers.map((u: any) => ({
-          _id: u._id,
-          id: u._id,
-          fullName: u.fullName,
-          email: u.email,
-          role: u.role === "DOCTOR" ? "Doctor" : 
-                u.role === "LIAISON_OFFICER" ? "Liaison Officer" : u.role,
-          backendRole: u.role, // Keep original for editing
-          department: u.department || "General",
-          status: u.isActive ? "Active" : "Inactive",
-          isActive: u.isActive
-        }))
-        
-        setUsers(formattedUsers)
-        setError("")
-      } else {
-        setError(response.error || "Failed to fetch users")
-        setUsers([])
-      }
-    } catch (err) {
-      console.error("[UsersList] Error fetching users:", err)
-      setError("Failed to fetch users")
+      setError("")
+      const response = await apiClient.getUsers({ hospitalId: user.hospitalId })
+      const userData = response.data || response
+      const allUsers = Array.isArray(userData) ? userData : []
+      
+      // Filter to only show DOCTOR and LIAISON_OFFICER roles
+      const filteredUsers = allUsers.filter(
+        (u: any) => u.role === "DOCTOR" || u.role === "LIAISON_OFFICER"
+      )
+      
+      setUsers(filteredUsers)
+    } catch (err: any) {
+      console.error("Error fetching users:", err)
+      setError(err.message || "Failed to load users")
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    console.log("[DEBUG] Current user:", user)
     fetchUsers()
-  }, [user?.token])
+  }, [user?.token, user?.hospitalId])
 
-  // Add user
   const handleAddUser = async () => {
-    if (!formData.fullName || !formData.email || !formData.password || !user?.token || !user?.hospitalId) {
-      setError("Please fill in all fields")
+    if (!formData.fullName || !formData.email || !formData.password) {
+      setError("Please fill in all required fields")
+      return
+    }
+
+    if (!user?.token || !user?.hospitalId) {
+      setError("Authentication token or hospital ID missing")
       return
     }
 
     try {
       setIsSubmitting(true)
       setError("")
-
-      const createData = {
+      await apiClient.createUser({
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         role: formData.role,
         hospitalId: user.hospitalId,
-      }
-
-      console.log("[UsersList] Creating user:", createData)
-      const response = await apiClient.createUser(createData)
-
-      if (response.success && response.data) {
-        const newUser: User = {
-          _id: response.data._id,
-          id: response.data._id,
-          fullName: response.data.fullName,
-          email: response.data.email,
-          role: response.data.role === "DOCTOR" ? "Doctor" : "Liaison Officer",
-          status: response.data.isActive ? "Active" : "Inactive",
-          isActive: response.data.isActive
-        }
-        setUsers([...users, newUser])
-        setFormData({ fullName: "", email: "", password: "", role: "DOCTOR", department: "General" })
-        setIsOpen(false)
-        setError("")
-      } else {
-        setError(response.error || "Failed to create user")
-      }
-    } catch (err) {
-      console.error("[UsersList] Error creating user:", err)
-      setError("Failed to create user")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Delete user
-  const handleDeleteUser = async (userId: string) => {
-    console.log("🗑️ Deleting user:", userId)
-    
-    if (!user?.token) {
-      setError("No authentication token")
-      return
-    }
-
-    try {
-      setDeletingUserId(userId)
-      setError("")
+      })
       
-      // Optimistic update - remove immediately from UI
-      setUsers(prevUsers => prevUsers.filter(u => u._id !== userId))
-      
-      const response = await apiClient.deleteUser(userId)
-
-
-      if (!response.success) {
-        // If delete failed, refetch users to restore state
-        await fetchUsers()
-        setError(response.error || "Failed to delete user")
-      }
-    } catch (err) {
-      console.error("Delete error:", err)
-      // If error, refetch users to restore state
+      setFormData({ fullName: "", email: "", password: "", role: "DOCTOR" })
+      setIsOpen(false)
       await fetchUsers()
-      setError("Failed to delete user")
+    } catch (err: any) {
+      console.error("Error creating user:", err)
+      setError(err.message || "Failed to create user")
     } finally {
-      setDeletingUserId(null)
+      setIsSubmitting(false)
     }
   }
 
-  // Open edit dialog
-  const handleEditClick = (userItem: User) => {
-    console.log("✏️ Opening edit for:", userItem.fullName)
-    setEditingUser(userItem)
-    setEditFormData({
-      fullName: userItem.fullName,
-      email: userItem.email,
-      role: userItem.role === "Doctor" ? "DOCTOR" : "LIAISON_OFFICER",
-      isActive: userItem.isActive || true
-    })
-    setIsEditOpen(true)
-  }
-
-  // Save edited user
-  const handleSaveEdit = async () => {
-    if (!editingUser?._id || !user?.token) {
-      setError("Cannot save edit")
+  const handleToggleActive = async (userId: string, currentStatus: boolean) => {
+    if (!user?.token) {
+      setError("Authentication token missing")
       return
     }
 
     try {
-      setIsSubmitting(true)
       setError("")
-      
-      // Prepare update data
-      const updateData: any = {
-        fullName: editFormData.fullName,
-        isActive: editFormData.isActive
-      }
-      
-<<<<<<< HEAD
-      console.log("Sending update:", updateData)
-      const response = await apiClient.updateUser(userId, updateData)
+      await apiClient.updateUser(userId, { isActive: !currentStatus })
+      await fetchUsers()
+    } catch (err: any) {
+      console.error("Error updating user:", err)
+      setError(err.message || "Failed to update user")
+    }
+  }
 
-      console.log("Update response:", response)
-=======
-      console.log("💾 Saving edit for user:", editingUser._id)
-      console.log("📝 Update data:", updateData)
-      
-      const response = await userApi.updateUser(editingUser._id, updateData, user.token)
-      console.log("Edit API response:", response)
->>>>>>> 738c3572ea5facf667cbf6b9cb818cf5297396fa
+  const handleDeleteUser = async (userId: string) => {
+    if (!user?.token) {
+      setError("Authentication token missing")
+      return
+    }
 
-      if (response.success) {
-        console.log("✅ Edit successful")
-        
-        // Update local state
-        setUsers(prevUsers => 
-          prevUsers.map(u => {
-            if (u._id === editingUser._id) {
-              return {
-                ...u,
-                fullName: editFormData.fullName,
-                email: editFormData.email,
-                role: editFormData.role === "DOCTOR" ? "Doctor" : "Liaison Officer",
-                status: editFormData.isActive ? "Active" : "Inactive",
-                isActive: editFormData.isActive
-              }
-            }
-            return u
-          })
-        )
-        
-        // Close dialog and reset
-        setIsEditOpen(false)
-        setEditingUser(null)
-        setEditFormData({
-          fullName: "",
-          email: "",
-          role: "DOCTOR",
-          isActive: true
-        })
-      } else {
-        console.log("❌ Edit failed:", response.error)
-        setError(response.error || "Failed to update user")
-      }
-    } catch (err) {
-      console.error("🔥 Edit error:", err)
-      setError("Failed to update user")
-    } finally {
-      setIsSubmitting(false)
+    if (!confirm("Are you sure you want to delete this user?")) {
+      return
+    }
+
+    try {
+      setError("")
+      await apiClient.deleteUser(userId)
+      await fetchUsers()
+    } catch (err: any) {
+      console.error("Error deleting user:", err)
+      setError(err.message || "Failed to delete user")
     }
   }
 
   const getRoleColor = (role: string) => {
-    if (role === "Doctor") return "bg-blue-100 text-blue-800"
-    if (role === "Liaison Officer") return "bg-purple-100 text-purple-800"
+    if (role === "DOCTOR") return "bg-blue-100 text-blue-800"
+    if (role === "LIAISON_OFFICER") return "bg-purple-100 text-purple-800"
     return "bg-gray-100 text-gray-800"
   }
 
-  const getStatusColor = (status: string) => {
-    return status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+  const getRoleLabel = (role: string) => {
+    if (role === "DOCTOR") return "Doctor"
+    if (role === "LIAISON_OFFICER") return "Liaison Officer"
+    return role
+  }
+
+  const getStatusColor = (status: boolean) => {
+    return status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
   }
 
   return (
     <div className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold">User Management</h2>
@@ -305,11 +185,10 @@ export function UsersList() {
               <DialogDescription>Create a new doctor or liaison officer in your hospital</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              {error && <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>}
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
-                  id="name"
+                  id="fullName"
                   placeholder="Enter full name"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -352,112 +231,32 @@ export function UsersList() {
                 className="w-full bg-green-600 hover:bg-green-700"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Creating..." : "Add User"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Add User"
+                )}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Edit User Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {error && <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>}
-            <div>
-              <Label htmlFor="edit-name">Full Name</Label>
-              <Input
-                id="edit-name"
-                placeholder="Enter full name"
-                value={editFormData.fullName}
-                onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                placeholder="Enter email address"
-                value={editFormData.email}
-                onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-role">Role</Label>
-              <Select 
-                value={editFormData.role} 
-                onValueChange={(value) => setEditFormData({...editFormData, role: value})}
-              >
-                <SelectTrigger id="edit-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DOCTOR">Doctor</SelectItem>
-                  <SelectItem value="LIAISON_OFFICER">Liaison Officer</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="edit-status">Status</Label>
-              <Select 
-                value={editFormData.isActive ? "active" : "inactive"} 
-                onValueChange={(value) => setEditFormData({...editFormData, isActive: value === "active"})}
-              >
-                <SelectTrigger id="edit-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSaveEdit}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                onClick={() => {
-                  setIsEditOpen(false)
-                  setEditingUser(null)
-                }}
-                className="flex-1"
-                variant="outline"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Hospital Staff</CardTitle>
-          <CardDescription>All doctors and liaison officers in your facility</CardDescription>
+          <CardDescription>All users in your facility</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Loading users...</p>
-            </div>
-          ) : error && !users.length ? (
-            <div className="text-center py-8">
-              <p className="text-red-600">{error}</p>
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No users found. Add your first user to get started.</p>
-            </div>
+            <div className="text-center py-8 text-muted-foreground">No users found</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -476,20 +275,23 @@ export function UsersList() {
                       <td className="py-3 px-4 text-sm">{userItem.fullName}</td>
                       <td className="py-3 px-4 text-sm text-muted-foreground">{userItem.email}</td>
                       <td className="py-3 px-4">
-                        <Badge className={`${getRoleColor(userItem.role)} text-xs`}>{userItem.role}</Badge>
+                        <Badge className={`${getRoleColor(userItem.role)} text-xs`}>
+                          {getRoleLabel(userItem.role)}
+                        </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        <Badge className={`${getStatusColor(userItem.status || "Active")} text-xs`}>
-                          {userItem.status || "Active"}
+                        <Badge className={`${getStatusColor(userItem.isActive)} text-xs`}>
+                          {userItem.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={() => handleEditClick(userItem)}
+                            onClick={() => handleToggleActive(userItem._id, userItem.isActive)}
+                            title={userItem.isActive ? "Deactivate" : "Activate"}
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>
@@ -497,18 +299,9 @@ export function UsersList() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
-                            onClick={() => {
-                              if (userItem._id && confirm(`Delete ${userItem.fullName}?`)) {
-                                handleDeleteUser(userItem._id)
-                              }
-                            }}
-                            disabled={deletingUserId === userItem._id}
+                            onClick={() => handleDeleteUser(userItem._id)}
                           >
-                            {deletingUserId === userItem._id ? (
-                              <span className="animate-spin">↻</span>
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </td>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { apiClient } from "@/lib/api-client1"
+import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,6 +34,7 @@ export function CreateReferral() {
   const [searchType, setSearchType] = useState<"phone" | "nationalId" | "fullName">("phone")
   const [searching, setSearching] = useState(false)
   const [foundPatient, setFoundPatient] = useState<Patient | null>(null)
+  const [searchResults, setSearchResults] = useState<Patient[]>([])
   const [showPatientForm, setShowPatientForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
@@ -58,9 +59,41 @@ export function CreateReferral() {
     clinicalNotes: "",
     requiredSpecialty: "",
     requiredBedType: "",
+    attachments: [] as string[], // Add attachments field
   })
 
   const [hospitals, setHospitals] = useState<Array<{ _id: string; name: string }>>([])
+
+  const ensurePatientId = async (): Promise<string | null> => {
+    // If we already found an existing patient, use it.
+    if (foundPatient?._id) return foundPatient._id
+
+    // Otherwise we must create/find a patient first (backend expects patientId OR a full patient object).
+    if (!patientData.fullName || !patientData.phone || !patientData.dateOfBirth || !patientData.sex) {
+      setError("Please register the patient first (Name, Phone, Gender, Date of Birth) or search for an existing patient.")
+      return null
+    }
+
+    try {
+      const created = await apiClient.findOrCreatePatient({
+        fullName: patientData.fullName,
+        sex: patientData.sex,
+        dateOfBirth: patientData.dateOfBirth,
+        phone: patientData.phone,
+        nationalId: patientData.nationalId || undefined,
+        address: patientData.address || undefined,
+      })
+      const createdPatient = created?.data || created
+      const patientId = createdPatient?._id
+      if (!patientId) throw new Error("Failed to register patient. No patient ID returned.")
+      setFoundPatient(createdPatient)
+      return patientId
+    } catch (err: any) {
+      console.error("Error creating patient:", err)
+      setError(err.message || "Failed to register patient. Please try again.")
+      return null
+    }
+  }
 
   useEffect(() => {
     const fetchHospitals = async () => {
@@ -85,32 +118,40 @@ export function CreateReferral() {
     setSearching(true)
     setError("")
     setFoundPatient(null)
+    setSearchResults([])
 
     try {
       const searchParams: any = {}
       if (searchType === "phone") {
-        searchParams.phone = searchQuery
+        searchParams.phone = searchQuery.trim()
       } else if (searchType === "nationalId") {
-        searchParams.nationalId = searchQuery
+        searchParams.nationalId = searchQuery.trim()
       } else {
-        searchParams.fullName = searchQuery
+        searchParams.fullName = searchQuery.trim()
       }
 
       const response = await apiClient.searchPatients(searchParams)
       const patients = response.data || response
 
       if (Array.isArray(patients) && patients.length > 0) {
-        const patient = patients[0]
-        setFoundPatient(patient)
-        setPatientData({
-          fullName: patient.fullName,
-          sex: patient.sex,
-          dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split("T")[0] : "",
-          phone: patient.phone,
-          nationalId: patient.nationalId || "",
-          address: patient.address || "",
-        })
-        setShowPatientForm(false)
+        setSearchResults(patients)
+        if (patients.length === 1) {
+          const patient = patients[0]
+          setFoundPatient(patient)
+          setPatientData({
+            fullName: patient.fullName,
+            sex: patient.sex,
+            dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split("T")[0] : "",
+            phone: patient.phone,
+            nationalId: patient.nationalId || "",
+            address: patient.address || "",
+          })
+          setSearchResults([])
+          setShowPatientForm(false)
+        } else {
+          // multiple matches; let user pick
+          setShowPatientForm(false)
+        }
       } else {
         setFoundPatient(null)
         setShowPatientForm(true)
@@ -170,9 +211,20 @@ export function CreateReferral() {
     setSuccess("")
 
     try {
+      // Based on your Postman test, the backend expects a patient object, not patientId
+      // Create a proper patient object as shown in the successful Postman request
       const referralPayload: any = {
         fromHospital: user.hospitalId,
-        doctorName: user.name || user.email,
+        doctorName: user.name || user.email || "Doctor",
+        // Send patient as an object (required by backend)
+        patient: {
+          fullName: patientData.fullName,
+          sex: patientData.sex,
+          dateOfBirth: patientData.dateOfBirth,
+          phone: patientData.phone,
+          nationalId: patientData.nationalId || "",
+          address: patientData.address || "",
+        },
         patientName: patientData.fullName,
         patientPhone: patientData.phone,
         urgency: referralData.urgency,
@@ -180,29 +232,30 @@ export function CreateReferral() {
         clinicalNotes: referralData.clinicalNotes || undefined,
         requiredSpecialty: referralData.requiredSpecialty || undefined,
         requiredBedType: referralData.requiredBedType || undefined,
+        attachments: referralData.attachments || [],
+        // Add status for draft if needed
+        status: "DRAFT",
       }
 
-      if (foundPatient?._id) {
-        referralPayload.patientId = foundPatient._id
-      } else {
-        referralPayload.patient = {
-          fullName: patientData.fullName,
-          sex: patientData.sex,
-          dateOfBirth: patientData.dateOfBirth,
-          phone: patientData.phone,
-          nationalId: patientData.nationalId || undefined,
-          address: patientData.address || undefined,
-        }
-      }
-
+      // Add toHospital only if selected
       if (referralData.toHospital) {
         referralPayload.toHospital = referralData.toHospital
       }
 
-      await apiClient.createReferral(referralPayload)
+      // Debug log to see what we're sending
+      console.log("[Save Draft] Sending payload:", JSON.stringify(referralPayload, null, 2))
+
+      // Call the draft endpoint - adjust the endpoint based on your API
+      // If you have a separate endpoint for drafts, use it:
+      // Example: await apiClient.post('/referrals/draft', referralPayload)
+      // Otherwise use the regular create endpoint with status=DRAFT
+      const response = await apiClient.post('/referrals/draft', referralPayload)
+      
+      console.log("[Save Draft] Response:", response)
+      
       setSuccess("Referral saved as draft successfully!")
       
-      // Reset form
+      // Reset form after successful save
       setTimeout(() => {
         setFoundPatient(null)
         setShowPatientForm(false)
@@ -221,12 +274,19 @@ export function CreateReferral() {
           clinicalNotes: "",
           requiredSpecialty: "",
           requiredBedType: "",
+          attachments: [],
         })
         setSearchQuery("")
         setSuccess("")
       }, 2000)
     } catch (err: any) {
-      setError(err.message || "Failed to save draft")
+      console.error("[Save Draft] Error:", err)
+      // Handle specific error messages
+      if (err.message?.includes("patient must be an object")) {
+        setError("Patient data format error. Please ensure all patient fields are filled correctly.")
+      } else {
+        setError(err.message || "Failed to save draft. Please check the console for details.")
+      }
     } finally {
       setIsSavingDraft(false)
     }
@@ -238,8 +298,8 @@ export function CreateReferral() {
       return
     }
 
-    if (!patientData.fullName || !patientData.phone || !referralData.reasonForReferral || !referralData.toHospital) {
-      setError("Please fill in all required fields including target hospital")
+    if (!patientData.fullName || !patientData.phone || !referralData.reasonForReferral) {
+      setError("Please fill in all required fields")
       return
     }
 
@@ -248,43 +308,19 @@ export function CreateReferral() {
     setSuccess("")
 
     try {
-      // Ensure we have a patient (either found or need to create one)
-      let patientId = foundPatient?._id
-      
-      // If no patient found, we need to create/register the patient first
-      if (!patientId) {
-        if (!patientData.fullName || !patientData.phone || !patientData.dateOfBirth) {
-          setError("Please register the patient first or search for an existing patient")
-          setIsSubmitting(false)
-          return
-        }
-        
-        try {
-          const newPatient = await apiClient.findOrCreatePatient({
-            fullName: patientData.fullName,
-            sex: patientData.sex,
-            dateOfBirth: patientData.dateOfBirth,
-            phone: patientData.phone,
-            nationalId: patientData.nationalId || undefined,
-            address: patientData.address || undefined,
-          })
-          patientId = newPatient._id || newPatient.data?._id
-          if (!patientId) {
-            throw new Error("Failed to create patient. No patient ID returned.")
-          }
-        } catch (patientErr: any) {
-          console.error("Error creating patient:", patientErr)
-          setError(patientErr.message || "Failed to register patient. Please try again.")
-          setIsSubmitting(false)
-          return
-        }
-      }
-
-      // Create referral WITHOUT toHospital first (will be saved as DRAFT)
+      // Create a proper patient object as shown in the successful Postman request
       const referralPayload: any = {
         fromHospital: user.hospitalId,
-        doctorName: user.name || user.email,
-        patientId: patientId, // Always use patientId if we have it
+        doctorName: user.name || user.email || "Doctor",
+        // Send patient as an object (required by backend)
+        patient: {
+          fullName: patientData.fullName,
+          sex: patientData.sex,
+          dateOfBirth: patientData.dateOfBirth,
+          phone: patientData.phone,
+          nationalId: patientData.nationalId || "",
+          address: patientData.address || "",
+        },
         patientName: patientData.fullName,
         patientPhone: patientData.phone,
         urgency: referralData.urgency,
@@ -292,30 +328,28 @@ export function CreateReferral() {
         clinicalNotes: referralData.clinicalNotes || undefined,
         requiredSpecialty: referralData.requiredSpecialty || undefined,
         requiredBedType: referralData.requiredBedType || undefined,
+        attachments: referralData.attachments || [],
       }
 
-      // Add createdBy if user.id is available
-      if (user?.id) {
-        referralPayload.createdBy = user.id
+      // Add toHospital only if selected
+      if (referralData.toHospital) {
+        referralPayload.toHospital = referralData.toHospital
       }
 
-      console.log("[CreateReferral] Creating referral with payload:", referralPayload)
+      console.log("[Submit Referral] Sending payload:", JSON.stringify(referralPayload, null, 2))
 
-      // Create referral as DRAFT first
+      // Call the regular create endpoint
       const referral = await apiClient.createReferral(referralPayload)
       const referralId = referral._id || referral.data?._id
 
       if (!referralId) {
-        console.error("[CreateReferral] Referral response:", referral)
+        console.error("[Submit Referral] Referral response:", referral)
         throw new Error("Failed to create referral. No referral ID returned.")
       }
 
-      console.log("[CreateReferral] Referral created with ID:", referralId)
+      console.log("[Submit Referral] Referral created with ID:", referralId)
 
-      // Now send the referral to the liaison officer with the target hospital
-      await apiClient.sendReferral(referralId, referralData.toHospital)
-
-      setSuccess("Referral submitted successfully!")
+      setSuccess("Referral created successfully!")
       
       // Reset form
       setTimeout(() => {
@@ -336,15 +370,35 @@ export function CreateReferral() {
           clinicalNotes: "",
           requiredSpecialty: "",
           requiredBedType: "",
+          attachments: [],
         })
         setSearchQuery("")
         setSuccess("")
       }, 2000)
     } catch (err: any) {
       console.error("Error submitting referral:", err)
-      setError(err.message || "Failed to submit referral")
+      // Handle specific error messages
+      if (err.message?.includes("patient must be an object")) {
+        setError("Patient data format error. Please ensure all patient fields are filled correctly.")
+      } else {
+        setError(err.message || "Failed to submit referral")
+      }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Function to handle file attachments (optional - you can implement this later)
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Implement file upload logic here
+    const files = e.target.files
+    if (files) {
+      // For now, just store filenames
+      const fileNames = Array.from(files).map(file => file.name)
+      setReferralData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, ...fileNames]
+      }))
     }
   }
 
@@ -403,6 +457,42 @@ export function CreateReferral() {
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm font-medium text-green-800">
                 ✓ Patient found: {foundPatient.fullName} ({foundPatient.phone})
+              </p>
+            </div>
+          )}
+
+          {!foundPatient && searchResults.length > 1 && (
+            <div className="p-4 border rounded-lg space-y-3">
+              <p className="text-sm font-medium">Multiple patients found — select the correct one:</p>
+              <div className="space-y-2">
+                {searchResults.slice(0, 10).map((p) => (
+                  <button
+                    key={p._id}
+                    type="button"
+                    className="w-full text-left p-3 rounded border hover:bg-muted"
+                    onClick={() => {
+                      setFoundPatient(p)
+                      setPatientData({
+                        fullName: p.fullName,
+                        sex: p.sex,
+                        dateOfBirth: p.dateOfBirth ? new Date(p.dateOfBirth).toISOString().split("T")[0] : "",
+                        phone: p.phone,
+                        nationalId: p.nationalId || "",
+                        address: p.address || "",
+                      })
+                      setSearchResults([])
+                      setShowPatientForm(false)
+                    }}
+                  >
+                    <div className="font-medium">{p.fullName}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {p.phone} {p.nationalId ? `• ${p.nationalId}` : ""}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Not seeing the right one? Try searching by phone or national ID.
               </p>
             </div>
           )}
@@ -503,7 +593,7 @@ export function CreateReferral() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="toHospital">Target Hospital *</Label>
+              <Label htmlFor="toHospital">Target Hospital (optional for draft)</Label>
               <Select
                 value={referralData.toHospital}
                 onValueChange={(value) => setReferralData({ ...referralData, toHospital: value })}
@@ -580,6 +670,22 @@ export function CreateReferral() {
               />
             </div>
           </div>
+
+          {/* File Attachments (Optional) */}
+          <div className="space-y-2">
+            <Label htmlFor="attachments">Attachments (Optional)</Label>
+            <Input
+              id="attachments"
+              type="file"
+              multiple
+              onChange={handleFileUpload}
+            />
+            {referralData.attachments.length > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Files: {referralData.attachments.join(", ")}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -598,7 +704,7 @@ export function CreateReferral() {
           disabled={isSubmitting || isSavingDraft}
         >
           <Send className="w-4 h-4 mr-2" />
-          {isSubmitting ? "Submitting..." : "Submit to Liaison Officer"}
+          {isSubmitting ? "Creating..." : "Create Referral"}
         </Button>
       </div>
     </div>
