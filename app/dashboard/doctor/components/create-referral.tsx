@@ -113,7 +113,6 @@ export function CreateReferral() {
 
   // Referral form data
   const [referralData, setReferralData] = useState({
-    toHospital: "",
     urgency: "ROUTINE" as "ROUTINE" | "URGENT" | "EMERGENCY",
     reasonForReferral: "",
     clinicalNotes: "",
@@ -291,7 +290,6 @@ export function CreateReferral() {
       setTimeout(() => {
         setFoundPatient(null)
         setReferralData({
-          toHospital: "",
           urgency: "ROUTINE",
           reasonForReferral: "",
           clinicalNotes: "",
@@ -399,7 +397,6 @@ export function CreateReferral() {
       setTimeout(() => {
         setFoundPatient(null)
         setReferralData({
-          toHospital: "",
           urgency: "ROUTINE",
           reasonForReferral: "",
           clinicalNotes: "",

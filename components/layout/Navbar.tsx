@@ -37,7 +37,7 @@ export default function Navbar() {
           {/* Action Button */}
           <div className="flex items-center">
             <Link
-              href="/auth/login"
+              href="/login"
               className="px-6 py-2 rounded-lg font-medium transition-colors shadow-sm hover:opacity-90"
               style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}
             >
