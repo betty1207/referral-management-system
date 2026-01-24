@@ -7,28 +7,27 @@ import { IncomingReferrals } from "./components/incoming-referrals"
 import { OutgoingReferrals } from "./components/outgoing-referrals"
 import { ApprovalForm } from "./components/approval-form"
 import { useState } from "react"
+import { GateCheckIn } from "./components/gate-check-in"
+import { CompletedReferrals } from "./components/completed-referrals"
 
-type LiaisonPage = "overview" | "incoming" | "outgoing" | "follow-up" | "support"
+type LiaisonPage = "overview" | "incoming" | "outgoing" | "gate-checkin" | "completed" | "support"
 
 export default function LiaisonDashboard() {
   const [currentPage, setCurrentPage] = useState<LiaisonPage>("overview")
   const [selectedReferral, setSelectedReferral] = useState<string | null>(null)
   const [showApprovalForm, setShowApprovalForm] = useState(false)
 
-  // Handle selecting a referral for approval
   const handleSelectReferral = (referralId: string) => {
     setSelectedReferral(referralId)
     setShowApprovalForm(true)
   }
 
-  // Handle back from approval form
   const handleBackFromApproval = () => {
     setShowApprovalForm(false)
     setSelectedReferral(null)
   }
 
   const renderContent = () => {
-    // If approval form is open, show it
     if (showApprovalForm) {
       return (
         <div className="space-y-4">
@@ -43,13 +42,12 @@ export default function LiaisonDashboard() {
           </div>
           <ApprovalForm 
             referralId={selectedReferral} 
-            onComplete={handleBackFromApproval}
+            onBack={handleBackFromApproval}
           />
         </div>
       )
     }
 
-    // Otherwise show the regular page
     switch (currentPage) {
       case "overview":
         return <DashboardOverview />
@@ -61,10 +59,17 @@ export default function LiaisonDashboard() {
         )
       case "outgoing":
         return <OutgoingReferrals />
-      case "follow-up":
-        return <div className="text-center py-12">Follow-up & Feedback (Coming Soon)</div>
+      case "gate-checkin":
+        return <GateCheckIn />
+      case "completed":
+        return <CompletedReferrals />
       case "support":
-        return <div className="text-center py-12">Support (Coming Soon)</div>
+        return (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold mb-4">Help & Support</h3>
+            <p className="text-gray-600">Contact system administrator for assistance.</p>
+          </div>
+        )
       default:
         return <DashboardOverview />
     }
@@ -76,9 +81,9 @@ export default function LiaisonDashboard() {
       sidebar={
         <LiaisonSidebar 
           currentPage={currentPage} 
-          onPageChange={(page) => {
+          onPageChange={(page: LiaisonPage) => {
             setCurrentPage(page)
-            setShowApprovalForm(false) // Close approval form if open
+            setShowApprovalForm(false)
             setSelectedReferral(null)
           }} 
         />

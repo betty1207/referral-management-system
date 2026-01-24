@@ -99,10 +99,11 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
       setError("")
       setSuccess("")
 
-      await apiClient.approveReferral(referralId, {
-        scheduledDate: scheduledDate || undefined,
-        notes: notes || undefined,
-      })
+      await apiClient.respondToReferral(
+        referralId,
+        "ACCEPTED",
+        notes
+      )
 
       setSuccess("Referral approved successfully!")
       setTimeout(() => {
@@ -132,7 +133,11 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
       setError("")
       setSuccess("")
 
-      await apiClient.rejectReferral(referralId, rejectReason)
+      await apiClient.respondToReferral(
+        referralId,
+        "REJECTED",
+        rejectReason
+      )
 
       setSuccess("Referral rejected successfully!")
       setShowRejectDialog(false)
@@ -203,7 +208,6 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
       </Button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Patient Info */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Patient Information</CardTitle>
@@ -272,7 +276,6 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
           </CardContent>
         </Card>
 
-        {/* Approval Card */}
         <Card className="h-fit">
           <CardHeader>
             <CardTitle>Review Action</CardTitle>
