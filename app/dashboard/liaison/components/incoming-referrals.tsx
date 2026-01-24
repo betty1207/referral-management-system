@@ -1,112 +1,103 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Search, 
-  Filter, 
-  User, 
-  Clock, 
-  Stethoscope,
-  AlertCircle,
-  ChevronRight
-} from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Search, Eye, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/auth-context"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Mock data - from YOUR doctors to YOU
-const mockReferrals = [
-  {
-    id: "REF-001",
-    patientName: "John Doe",
-    patientAge: 45,
-    patientGender: "Male",
-    doctorName: "Dr. Smith",
-    department: "Cardiology",
-    priority: "High",
-    submittedDate: "2024-01-15",
-    status: "pending",
-    notes: "Needs urgent cardiology consultation",
-  },
-  {
-    id: "REF-002", 
-    patientName: "Jane Smith",
-    patientAge: 32,
-    patientGender: "Female",
-    doctorName: "Dr. Johnson",
-    department: "Neurology",
-    priority: "Medium",
-    submittedDate: "2024-01-15",
-    status: "pending",
-    notes: "MRI results available",
-  },
-  {
-    id: "REF-003",
-    patientName: "Mike Brown",
-    patientAge: 58,
-    patientGender: "Male",
-    doctorName: "Dr. Williams",
-    department: "Orthopedics",
-    priority: "Low",
-    submittedDate: "2024-01-14",
-    status: "pending",
-    notes: "Routine follow-up",
-  },
-  {
-    id: "REF-004",
-    patientName: "Sarah Lee",
-    patientAge: 29,
-    patientGender: "Female",
-    doctorName: "Dr. Chen",
-    department: "Pediatrics",
-    priority: "High",
-    submittedDate: "2024-01-14",
-    status: "pending",
-    notes: "Pediatric emergency",
-  },
-]
+interface Referral {
+  _id: string
+  patientName: string
+  patientPhone: string
+  fromHospital?: { name: string; _id: string } | string
+  toHospital?: { name: string; _id: string } | string
+  urgency: string
+  status: string
+  reasonForReferral: string
+  clinicalNotes?: string
+  createdAt: string
+  createdBy?: { fullName: string } | string
+}
 
 interface IncomingReferralsProps {
-  onSelectReferral: (referralId: string) => void
+  onSelectReferral: (id: string) => void
 }
 
 export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) {
+  const { user } = useAuth()
+  const [referrals, setReferrals] = useState<Referral[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterDepartment, setFilterDepartment] = useState("all")
-  const [filterPriority, setFilterPriority] = useState("all")
 
-  // Filter referrals
-  const filteredReferrals = mockReferrals.filter((referral) => {
-    const matchesSearch = 
-      referral.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      referral.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      referral.id.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesDepartment = 
-      filterDepartment === "all" || referral.department === filterDepartment
-    
-    const matchesPriority = 
-      filterPriority === "all" || referral.priority.toLowerCase() === filterPriority
-
-    return matchesSearch && matchesDepartment && matchesPriority
-  })
-
-  // Get priority badge color
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high": return "bg-red-100 text-red-800"
-      case "medium": return "bg-amber-100 text-amber-800"
-      case "low": return "bg-green-100 text-green-800"
-      default: return "bg-gray-100 text-gray-800"
+  const fetchIncomingReferrals = async () => {
+    if (!user?.token || !user?.hospitalId) {
+      setError("Authentication token or hospital ID missing")
+      setIsLoading(false)
+      return
     }
+
+      try {
+      setIsLoading(true)
+      setError("")
+      // Fetch all referrals and filter for incoming (where this hospital is the target)
+      const response = await apiClient.getAllReferrals()
+      const referralData = response.data || response
+      const allReferrals = Array.isArray(referralData) ? referralData : []
+      
+      // Filter to only show incoming referrals (toHospital matches) that need review
+      const filteredReferrals = allReferrals.filter((r: any) => {
+        const toHospitalId = typeof r.toHospital === 'object' ? r.toHospital?._id : r.toHospital
+        return (
+          toHospitalId === user.hospitalId &&
+          (r.status === "PENDING" || r.status === "APPROVED" || r.status === "DRAFT")
+        )
+      })
+      
+      setReferrals(filteredReferrals)
+    } catch (err: any) {
+      console.error("Error fetching incoming referrals:", err)
+      setError(err.message || "Failed to load incoming referrals")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchIncomingReferrals()
+  }, [user?.token, user?.hospitalId])
+
+  const getPriorityColor = (priority: string) => {
+    const upperPriority = priority.toUpperCase()
+    if (upperPriority === "EMERGENCY") return "bg-red-100 text-red-800"
+    if (upperPriority === "URGENT") return "bg-orange-100 text-orange-800"
+    return "bg-blue-100 text-blue-800"
+  }
+
+  const getStatusColor = (status: string) => {
+    const upperStatus = status.toUpperCase()
+    if (upperStatus === "APPROVED") return "bg-green-100 text-green-800"
+    if (upperStatus === "PENDING" || upperStatus === "DRAFT") return "bg-yellow-100 text-yellow-800"
+    if (upperStatus === "REJECTED") return "bg-red-100 text-red-800"
+    return "bg-gray-100 text-gray-800"
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleString()
+    } catch {
+      return dateString
+    }
+  }
+  const getHospitalName = (hospital: { name: string } | string | undefined) => {
+    if (!hospital) return "N/A"
+    if (typeof hospital === "string") return hospital
+    return hospital.name ||  "N/A"
   }
 
   const filteredReferrals = referrals.filter((referral) => {
@@ -120,131 +111,85 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
   })
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div>
-        <h1 className="text-2xl font-bold">Incoming Referrals</h1>
-        <p className="text-gray-600">
-          Review referrals from doctors in your hospital. Click any to approve or reject.
-        </p>
+        <h2 className="text-xl font-semibold">Incoming Referrals</h2>
+        <p className="text-sm text-muted-foreground">Review and approve referral requests from other facilities</p>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search by patient, doctor, or ID..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Department Filter */}
-            <div className="w-full md:w-48">
-              <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-                <SelectTrigger>
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="Cardiology">Cardiology</SelectItem>
-                  <SelectItem value="Neurology">Neurology</SelectItem>
-                  <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                  <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Priority Filter */}
-            <div className="w-full md:w-48">
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger>
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Referrals List */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Referrals Awaiting Review ({filteredReferrals.length})
-          </CardTitle>
+          <CardTitle className="text-lg">Referral Queue</CardTitle>
+          <CardDescription>Referrals awaiting your review and approval</CardDescription>
+          <div className="mt-4 relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by patient name or referral ID"
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </CardHeader>
         <CardContent>
-          {filteredReferrals.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No referrals match your filters</p>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredReferrals.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {searchTerm ? "No referrals found matching your search" : "No incoming referrals at this time"}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredReferrals.map((referral) => (
                 <div
-                  key={referral.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => onSelectReferral(referral.id)}
+                  key={referral._id}
+                  className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    {/* Left: Patient Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{referral.id}</Badge>
-                        <Badge className={getPriorityColor(referral.priority)}>
-                          {referral.priority} Priority
-                        </Badge>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold">{referral.patientName || "Unknown Patient"}</h3>
+                        <Badge className={getPriorityColor(referral.urgency)}>{referral.urgency}</Badge>
+                        <Badge className={getStatusColor(referral.status)}>{referral.status}</Badge>
                       </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-500" />
-                          <span className="font-semibold">{referral.patientName}</span>
-                          <span className="text-sm text-gray-600">
-                            ({referral.patientAge}y, {referral.patientGender})
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Stethoscope className="w-4 h-4" />
-                          <span>From: {referral.doctorName}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          <span>Submitted: {referral.submittedDate}</span>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-gray-700 mt-2">
-                        <span className="font-medium">Department:</span> {referral.department}
-                        {referral.notes && ` • ${referral.notes}`}
+                      <p className="text-sm text-muted-foreground">
+                        Ref ID: <span className="font-mono">{referral._id.substring(0, 8)}...</span>
                       </p>
                     </div>
-
-                    {/* Right: Action Button */}
-                    <div className="flex items-center">
-                      <Button variant="outline" className="gap-2">
-                        Review Referral
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
+                    <Button
+                      onClick={() => onSelectReferral(referral._id)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Review
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">From Facility</p>
+                      <p className="font-medium">{getHospitalName(referral.fromHospital)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Reason</p>
+                      <p className="font-medium">{referral.reasonForReferral || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Patient Phone</p>
+                      <p className="font-medium">{referral.patientPhone || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Received</p>
+                      <p className="font-medium text-xs">{formatDate(referral.createdAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -253,38 +198,6 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
           )}
         </CardContent>
       </Card>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{mockReferrals.length}</p>
-              <p className="text-sm text-gray-600">Total Pending</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-amber-600">
-                {mockReferrals.filter(r => r.priority === "High").length}
-              </p>
-              <p className="text-sm text-gray-600">High Priority</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold">
-                {mockReferrals.filter(r => r.department === "Cardiology").length}
-              </p>
-              <p className="text-sm text-gray-600">Cardiology Cases</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
