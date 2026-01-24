@@ -36,30 +36,19 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
   const [searchTerm, setSearchTerm] = useState("")
 
   const fetchIncomingReferrals = async () => {
-    if (!user?.token || !user?.hospitalId) {
-      setError("Authentication token or hospital ID missing")
+    if (!user?.token) {
+      setError("Authentication token missing")
       setIsLoading(false)
       return
     }
 
-      try {
+    try {
       setIsLoading(true)
       setError("")
-      // Fetch all referrals and filter for incoming (where this hospital is the target)
-      const response = await apiClient.getAllReferrals()
+      const response = await apiClient.getIncomingReferrals()
       const referralData = response.data || response
-      const allReferrals = Array.isArray(referralData) ? referralData : []
-      
-      // Filter to only show incoming referrals (toHospital matches) that need review
-      const filteredReferrals = allReferrals.filter((r: any) => {
-        const toHospitalId = typeof r.toHospital === 'object' ? r.toHospital?._id : r.toHospital
-        return (
-          toHospitalId === user.hospitalId &&
-          (r.status === "PENDING" || r.status === "APPROVED" || r.status === "DRAFT")
-        )
-      })
-      
-      setReferrals(filteredReferrals)
+      const incomingReferrals = Array.isArray(referralData) ? referralData : []
+      setReferrals(incomingReferrals)
     } catch (err: any) {
       console.error("Error fetching incoming referrals:", err)
       setError(err.message || "Failed to load incoming referrals")
@@ -70,7 +59,7 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
 
   useEffect(() => {
     fetchIncomingReferrals()
-  }, [user?.token, user?.hospitalId])
+  }, [user?.token])
 
   const getPriorityColor = (priority: string) => {
     const upperPriority = priority.toUpperCase()
@@ -94,10 +83,11 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
       return dateString
     }
   }
+
   const getHospitalName = (hospital: { name: string } | string | undefined) => {
     if (!hospital) return "N/A"
     if (typeof hospital === "string") return hospital
-    return hospital.name ||  "N/A"
+    return hospital.name || "N/A"
   }
 
   const filteredReferrals = referrals.filter((referral) => {

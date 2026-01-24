@@ -10,38 +10,82 @@ import {
   ArrowUpRight,
   AlertCircle
 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/auth-context"
 
 export function DashboardOverview() {
-  // Mock data - we'll replace with real data later
-  const stats = [
-    { title: "Pending Review", value: "5", icon: Clock, color: "text-amber-600", bgColor: "bg-amber-50" },
-    { title: "Approved Today", value: "3", icon: CheckCircle, color: "text-green-600", bgColor: "bg-green-50" },
-    { title: "Rejected Today", value: "1", icon: XCircle, color: "text-red-600", bgColor: "bg-red-50" },
-    { title: "Awaiting Response", value: "2", icon: AlertCircle, color: "text-blue-600", bgColor: "bg-blue-50" },
-  ]
-
-  const recentActivity = [
+  const { user } = useAuth()
+  const [stats, setStats] = useState([
+    { title: "Pending Review", value: "0", icon: Clock, color: "text-amber-600", bgColor: "bg-amber-50" },
+    { title: "Approved Today", value: "0", icon: CheckCircle, color: "text-green-600", bgColor: "bg-green-50" },
+    { title: "Rejected Today", value: "0", icon: XCircle, color: "text-red-600", bgColor: "bg-red-50" },
+    { title: "Awaiting Response", value: "0", icon: AlertCircle, color: "text-blue-600", bgColor: "bg-blue-50" },
+  ])
+  const [recentActivity, setRecentActivity] = useState([
     { id: 1, action: "Approved referral", patient: "John Doe", time: "10:30 AM", type: "incoming" },
     { id: 2, action: "Sent to Hospital B", patient: "Jane Smith", time: "9:45 AM", type: "outgoing" },
     { id: 3, action: "Referred to Cardiology", patient: "Mike Johnson", time: "Yesterday", type: "incoming" },
     { id: 4, action: "Received from Hospital C", patient: "Sarah Williams", time: "Yesterday", type: "incoming" },
-  ]
-
-  const quickActions = [
+  ])
+  const [quickActions, setQuickActions] = useState([
     { label: "Review Pending", count: 5, action: "review" },
     { label: "Follow-up Needed", count: 2, action: "followup" },
     { label: "Generate Reports", count: null, action: "reports" },
-  ]
+  ])
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.hospitalId) return
+      
+      try {
+        const response = await apiClient.getAllReferrals()
+        const referrals = Array.isArray(response) ? response : response.data || []
+        const today = new Date().toISOString().split('T')[0]
+        
+        const pending = referrals.filter((r: any) => {
+          const toHospital = typeof r.toHospital === 'object' ? r.toHospital?._id : r.toHospital
+          return toHospital === user.hospitalId && r.status === "PENDING"
+        }).length
+
+        const approvedToday = referrals.filter((r: any) => {
+          const toHospital = typeof r.toHospital === 'object' ? r.toHospital?._id : r.toHospital
+          const acceptedDate = r.acceptedAt ? new Date(r.acceptedAt).toISOString().split('T')[0] : null
+          return toHospital === user.hospitalId && r.status === "ACCEPTED" && acceptedDate === today
+        }).length
+
+        const rejectedToday = referrals.filter((r: any) => {
+          const toHospital = typeof r.toHospital === 'object' ? r.toHospital?._id : r.toHospital
+          const decisionDate = r.decisionMeta?.timestamp ? new Date(r.decisionMeta.timestamp).toISOString().split('T')[0] : null
+          return toHospital === user.hospitalId && r.status === "REJECTED" && decisionDate === today
+        }).length
+
+        const awaiting = referrals.filter((r: any) => {
+          const fromHospital = typeof r.fromHospital === 'object' ? r.fromHospital?._id : r.fromHospital
+          return fromHospital === user.hospitalId && r.status === "PENDING"
+        }).length
+
+        setStats([
+          { title: "Pending Review", value: pending.toString(), icon: Clock, color: "text-amber-600", bgColor: "bg-amber-50" },
+          { title: "Approved Today", value: approvedToday.toString(), icon: CheckCircle, color: "text-green-600", bgColor: "bg-green-50" },
+          { title: "Rejected Today", value: rejectedToday.toString(), icon: XCircle, color: "text-red-600", bgColor: "bg-red-50" },
+          { title: "Awaiting Response", value: awaiting.toString(), icon: AlertCircle, color: "text-blue-600", bgColor: "bg-blue-50" },
+        ])
+      } catch (error) {
+        console.error("Error fetching stats:", error)
+      }
+    }
+
+    fetchStats()
+  }, [user?.hospitalId])
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Dashboard Overview</h1>
         <p className="text-gray-600">Welcome back! Here's what's happening with referrals.</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon
@@ -63,11 +107,8 @@ export function DashboardOverview() {
         })}
       </div>
 
-      {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Quick Actions */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Quick Actions */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -103,7 +144,6 @@ export function DashboardOverview() {
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
@@ -133,7 +173,6 @@ export function DashboardOverview() {
           </Card>
         </div>
 
-        {/* Right Column - Performance */}
         <div className="space-y-6">
           <Card>
             <CardHeader>

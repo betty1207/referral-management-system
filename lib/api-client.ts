@@ -4,13 +4,11 @@ class ApiClient {
   private token: string | null = null
 
   constructor() {
-    // Initialize with token from localStorage if available
     if (typeof window !== "undefined") {
       this.token = localStorage.getItem("token") || null
     }
   }
 
-  // Method to set token (call this after login)
   setToken(token: string | null) {
     this.token = token
     if (token && typeof window !== "undefined") {
@@ -20,7 +18,6 @@ class ApiClient {
     }
   }
 
-  // Method to get current token
   getToken(): string | null {
     return this.token
   }
@@ -43,14 +40,10 @@ class ApiClient {
       "Content-Type": "application/json",
     }
 
-    // Use customToken if provided, otherwise use stored token
     const tokenToUse = customToken || this.token
 
     if (tokenToUse) {
       headers["Authorization"] = `Bearer ${tokenToUse}`
-      console.log(`[API] Request to ${url} with token: ${tokenToUse.substring(0, 20)}...`)
-    } else {
-      console.warn(`[API] Request to ${url} without token`)
     }
 
     const options: RequestInit = {
@@ -63,13 +56,9 @@ class ApiClient {
     }
 
     try {
-      console.log(`[API] ${method} ${url}`, body ? { body } : "")
       const response = await fetch(url, options)
 
-      console.log(`[API] Response status: ${response.status} for ${url}`)
-
       if (!response.ok) {
-        // Try to get error message from response
         let errorData: any = {}
         try {
           const text = await response.text()
@@ -77,16 +66,12 @@ class ApiClient {
             try {
               errorData = JSON.parse(text)
             } catch (parseError) {
-              // If not JSON, use text as message
               errorData = { message: text }
             }
           }
         } catch (textError) {
-          // If we can't read the response, use empty object
           console.warn(`[API] Could not read error response body:`, textError)
         }
-        console.error(`[API] Error ${response.status}:`, errorData)
-        // Try multiple possible error message fields
         const errorMessage =
           errorData.message ||
           errorData.error ||
@@ -96,31 +81,18 @@ class ApiClient {
         throw new Error(errorMessage)
       }
 
-      // Handle empty responses (204 No Content, or responses with no content)
-      const contentLength = response.headers.get("content-length")
-
-      // If it's 204 No Content, return empty object
       if (response.status === 204) {
-        console.log(`[API] Success for ${url}: (204 No Content)`)
         return {} as T
       }
 
-      // Try to parse JSON, but handle empty responses gracefully
       try {
         const text = await response.text()
-
-        // If response is empty, return empty object
         if (!text || text.trim().length === 0) {
-          console.log(`[API] Success for ${url}: (empty response)`)
           return {} as T
         }
-
         const data = JSON.parse(text)
-        console.log(`[API] Success for ${url}:`, data)
         return data
       } catch (parseError) {
-        // If JSON parsing fails but response was OK, return empty object
-        console.log(`[API] Success for ${url}: (non-JSON or empty response)`)
         return {} as T
       }
     } catch (error) {
@@ -129,7 +101,6 @@ class ApiClient {
     }
   }
 
-  // Generic HTTP methods for flexibility
   async get<T = any>(endpoint: string, params?: Record<string, any>): Promise<T> {
     let url = endpoint
     if (params && Object.keys(params).length > 0) {
@@ -201,34 +172,27 @@ class ApiClient {
 
   // Auth methods
   async login(email: string, password: string) {
-    const response = await this.request<any>("POST", "/auth/login", { email, password }, undefined) // Don't send token for login
-
-    // If login successful and we got a token, store it
+    const response = await this.request<any>("POST", "/auth/login", { email, password }, undefined)
     if (response.access_token) {
       this.setToken(response.access_token)
     }
-
     return response
   }
 
   async logout() {
     this.clearToken()
-    // Optional: Call backend logout endpoint if exists
-    // await this.post("/auth/logout")
   }
 
   async getProfile() {
     return this.get<any>("/auth/profile")
   }
 
-  // Method to get hospitals with a specific token (for components that have token in context)
   async getHospitalsWithToken(token: string) {
     return this.request<any>("GET", "/hospitals", undefined, token)
   }
 
   // Patient methods
   async searchPatients(params: { nationalId?: string; phone?: string; fullName?: string }) {
-    // Try POST first; if the endpoint isn't found / method isn't allowed, fall back to GET.
     try {
       return await this.post<any>("/patients/search", params)
     } catch (err: any) {
@@ -270,12 +234,12 @@ class ApiClient {
     return this.patch<any>(`/patients/${patientId}`, data)
   }
 
-  // Referral methods - Based on your Postman test
+  // Referral methods
   async createReferral(data: {
     fromHospital: string
     doctorName: string
     patientId?: string
-    patient: {  // This is REQUIRED based on your Postman test
+    patient: {
       fullName: string
       sex: "Male" | "Female"
       dateOfBirth: string
@@ -296,7 +260,6 @@ class ApiClient {
     return this.post<any>("/referrals", data)
   }
 
-  // Separate method for creating draft referrals (if you have a /draft endpoint)
   async createDraftReferral(data: {
     fromHospital: string
     doctorName: string
@@ -345,14 +308,35 @@ class ApiClient {
     return this.patch<any>(`/referrals/${referralId}`, data)
   }
 
+  // ==== LIAISON SPECIFIC METHODS (ADD THESE) ====
+  async getLiaisonOutbox() {
+    return this.get<any>("/referrals/liaison/outbox")
+  }
+
   async sendReferral(referralId: string, targetHospitalId: string) {
     return this.patch<any>(`/referrals/${referralId}/send`, { targetHospitalId })
   }
 
-  // Liaison Officer methods
-  async getLiaisonOutbox() {
-    return this.get<any>("/referrals/liaison/outbox")
+  async getIncomingReferrals() {
+    return this.get<any>("/referrals/incoming")
   }
+
+  async respondToReferral(referralId: string, status: string, justification?: string) {
+    return this.patch<any>(`/referrals/${referralId}/respond`, { 
+      status, 
+      justification 
+    })
+  }
+
+  async gateCheckIn(referralCode: string) {
+    return this.patch<any>("/referrals/gate-check-in", { referralCode })
+  }
+
+  async completeReferral(referralId: string, feedbackNote: string) {
+    return this.patch<any>(`/referrals/${referralId}/complete`, { feedbackNote })
+  }
+
+  // ==== END LIAISON METHODS ====
 
   async unlockReferral(referralId: string, otp: string) {
     return this.post<any>(`/referrals/${referralId}/unlock`, { otp })
@@ -385,31 +369,6 @@ class ApiClient {
 
   async getDraftReferrals(hospitalId?: string) {
     return this.getReferralsByStatus("DRAFT", { hospitalId })
-  }
-
-  // Liaison Officer methods
-  async getIncomingReferrals(hospitalId: string) {
-    return this.get<any>(`/hospitals/${hospitalId}/referrals/incoming`)
-  }
-
-  async getOutgoingReferrals(hospitalId: string) {
-    return this.get<any>(`/hospitals/${hospitalId}/referrals/outgoing`)
-  }
-
-  async approveReferral(referralId: string, data?: { scheduledDate?: string; notes?: string }) {
-    return this.patch<any>(`/referrals/${referralId}/approve`, data || {})
-  }
-
-  async rejectReferral(referralId: string, reason: string) {
-    return this.patch<any>(`/referrals/${referralId}/reject`, { reason })
-  }
-
-  async reviewReferral(referralId: string, action: "approve" | "reject", data?: { reason?: string; scheduledDate?: string; notes?: string }) {
-    if (action === "approve") {
-      return this.approveReferral(referralId, { scheduledDate: data?.scheduledDate, notes: data?.notes })
-    } else {
-      return this.rejectReferral(referralId, data?.reason || "No reason provided")
-    }
   }
 
   // Statistics and dashboard methods
