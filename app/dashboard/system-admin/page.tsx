@@ -8,6 +8,7 @@ import { SystemAdminSidebar, SystemAdminPage } from "./sidebar"
 import { DashboardOverview } from "./components/dashboard-overview"
 import { HospitalsSection } from "./components/hospitals-section"
 import { UserManagement } from "./components/user-management"
+import { ReportsAnalytics } from "./components/reports-analytics"
 
 export default function SystemAdminDashboard() {
   const { user, isLoading } = useAuth()
@@ -60,7 +61,7 @@ export default function SystemAdminDashboard() {
       case "users":
         return <UserManagement />
       case "reports":
-        return <div className="text-center py-12">Reports & Analytics Page (Coming Soon)</div>
+        return <ReportsAnalytics />
       case "settings":
         return <div className="text-center py-12">System Settings Page (Coming Soon)</div>
       default:
