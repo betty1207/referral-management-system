@@ -38,7 +38,8 @@ interface Referral {
   reasonForReferral: string
   clinicalNotes?: string
   createdAt: string
-  createdBy?: { fullName: string } | string
+  createdBy?: { fullName: string } | string | null // Allow null
+  doctorName?: string // Add optional doctorName field
 }
 
 interface Hospital {
@@ -186,6 +187,25 @@ export function OutgoingReferrals() {
     return hospital ? hospital.name : "Unknown Hospital"
   }
 
+  // Helper function to safely get creator name
+  const getCreatorName = (referral: Referral): string => {
+    // Try doctorName first if available
+    if (referral.doctorName) return referral.doctorName
+    
+    // Try createdBy object with null check
+    if (referral.createdBy && typeof referral.createdBy === 'object') {
+      return referral.createdBy.fullName || "Doctor"
+    }
+    
+    // If createdBy is a string
+    if (typeof referral.createdBy === 'string') {
+      return referral.createdBy
+    }
+    
+    // Fallback
+    return "Doctor"
+  }
+
   const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text)
     alert(message)
@@ -308,9 +328,7 @@ export function OutgoingReferrals() {
                     <div>
                       <p className="text-muted-foreground">Created By</p>
                       <p className="font-medium">
-                        {typeof referral.createdBy === 'object' 
-                          ? referral.createdBy.fullName 
-                          : "Doctor"}
+                        {getCreatorName(referral)}
                       </p>
                     </div>
                     <div>
@@ -386,9 +404,7 @@ export function OutgoingReferrals() {
                 <div>
                   <Label className="text-xs text-muted-foreground">Created By</Label>
                   <p className="text-sm">
-                    {typeof selectedReferral.createdBy === 'object' 
-                      ? selectedReferral.createdBy.fullName 
-                      : "Doctor"}
+                    {getCreatorName(selectedReferral)}
                   </p>
                 </div>
                 <div>

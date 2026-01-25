@@ -84,9 +84,9 @@ interface ReferralPayload {
     fullName: string
     sex: "Male" | "Female"
     dateOfBirth: string
+    nationalId?: string
     phone: string
-    nationalId: string
-    address: string
+    address?: string
   }
   patientName: string
   patientPhone: string
@@ -95,8 +95,7 @@ interface ReferralPayload {
   clinicalNotes?: string
   requiredSpecialty?: string
   requiredBedType?: string
-  attachments: string[]
-  toHospital?: string  // Make toHospital optional
+  attachments?: string[]
 }
 
 export function CreateReferral() {
@@ -111,7 +110,7 @@ export function CreateReferral() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  // Referral form data
+  // Referral form data - REMOVED toHospital from here
   const [referralData, setReferralData] = useState({
     urgency: "ROUTINE" as "ROUTINE" | "URGENT" | "EMERGENCY",
     reasonForReferral: "",
@@ -249,7 +248,7 @@ export function CreateReferral() {
         return
       }
 
-      // Create base payload
+      // Create base payload WITHOUT toHospital
       const referralPayload: ReferralPayload = {
         fromHospital: user.hospitalId,
         doctorName: user.name || user.email || "Doctor",
@@ -272,15 +271,10 @@ export function CreateReferral() {
         attachments: referralData.attachments || [],
       }
 
-      // Add toHospital only if selected - use type assertion
-      if (referralData.toHospital) {
-        (referralPayload as any).toHospital = referralData.toHospital
-      }
-
       console.log("[Save Draft] Sending payload:", JSON.stringify(referralPayload, null, 2))
 
       // Use the regular create endpoint - backend automatically creates as DRAFT
-      const response = await apiClient.createReferral(referralPayload as any)
+      const response = await apiClient.createReferral(referralPayload)
       
       console.log("[Save Draft] Response:", response)
       
@@ -348,7 +342,7 @@ export function CreateReferral() {
         return
       }
 
-      // Create base payload
+      // Create base payload WITHOUT toHospital
       const referralPayload: ReferralPayload = {
         fromHospital: user.hospitalId,
         doctorName: user.name || user.email || "Doctor",
@@ -371,15 +365,10 @@ export function CreateReferral() {
         attachments: referralData.attachments || [],
       }
 
-      // Add toHospital only if selected - use type assertion
-      if (referralData.toHospital) {
-        (referralPayload as any).toHospital = referralData.toHospital
-      }
-
       console.log("[Submit Referral] Full payload:", JSON.stringify(referralPayload, null, 2))
 
       // Call the regular create endpoint
-      const referral = await apiClient.createReferral(referralPayload as any)
+      const referral = await apiClient.createReferral(referralPayload)
       console.log("[Submit Referral] Response:", referral)
       
       const referralId = referral._id || referral.data?._id
@@ -712,25 +701,9 @@ export function CreateReferral() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="toHospital">Target Hospital (optional for draft)</Label>
-                <Select
-                  value={referralData.toHospital}
-                  onValueChange={(value) => setReferralData({ ...referralData, toHospital: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target hospital" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hospitals.map((hospital) => (
-                      <SelectItem key={hospital._id} value={hospital._id}>
-                        {hospital.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* REMOVED the Target Hospital dropdown section since toHospital is not in backend */}
+            
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="urgency">Urgency Level *</Label>
                 <Select
