@@ -1,12 +1,13 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, Users, Plus, Shield, BarChart3, User, History } from "lucide-react"
+import { LayoutGrid, Users, Plus, Shield, BarChart3, User, History, Activity } from "lucide-react"
 
 type DoctorPage =
   | "overview"
   | "patients"
   | "create-referral"
+  | "specialist-queue"
   | "secure-history"
   | "referral-status"
   | "reports"
@@ -22,6 +23,7 @@ export function DoctorSidebar({ currentPage, onPageChange }: DoctorSidebarProps)
     { id: "overview" as DoctorPage, label: "Dashboard", icon: LayoutGrid },
     { id: "patients" as DoctorPage, label: "Patients", icon: Users },
     { id: "create-referral" as DoctorPage, label: "Create Referral", icon: Plus },
+    { id: "specialist-queue" as DoctorPage, label: "Specialist Queue", icon: Activity },
     { id: "secure-history" as DoctorPage, label: "Patient History", icon: Shield },
     { id: "referral-status" as DoctorPage, label: "Referral Status", icon: History },
     { id: "reports" as DoctorPage, label: "Reports", icon: BarChart3 },
