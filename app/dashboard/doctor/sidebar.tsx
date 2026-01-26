@@ -3,13 +3,12 @@
 import { Button } from "@/components/ui/button"
 import { LayoutGrid, Users, Plus, Shield, BarChart3, User, History, Activity } from "lucide-react"
 
-type DoctorPage =
+export type DoctorPage =
   | "overview"
   | "patients"
   | "create-referral"
   | "specialist-queue"
   | "secure-history"
-  | "referral-status"
   | "reports"
   | "profile"
 
@@ -23,9 +22,8 @@ export function DoctorSidebar({ currentPage, onPageChange }: DoctorSidebarProps)
     { id: "overview" as DoctorPage, label: "Dashboard", icon: LayoutGrid },
     { id: "patients" as DoctorPage, label: "Patients", icon: Users },
     { id: "create-referral" as DoctorPage, label: "Create Referral", icon: Plus },
-    { id: "specialist-queue" as DoctorPage, label: "Specialist Queue", icon: Activity },
     { id: "secure-history" as DoctorPage, label: "Patient History", icon: Shield },
-    { id: "referral-status" as DoctorPage, label: "Referral Status", icon: History },
+    { id: "specialist-queue" as DoctorPage, label: "Complete Treatment", icon: Activity },
     { id: "reports" as DoctorPage, label: "Reports", icon: BarChart3 },
     { id: "profile" as DoctorPage, label: "Profile", icon: User },
   ]
