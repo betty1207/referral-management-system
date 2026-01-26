@@ -78,12 +78,14 @@ const formatAndValidateEthiopianPhone = (phone: string): {
 }
 
 interface ReferralPayload {
+  fromHospital: string
+  doctorName: string
   patient: {
     fullName: string
     sex: "Male" | "Female"
     dateOfBirth: string
-    phone: string
     nationalId?: string
+    phone: string
     address?: string
   }
   patientName: string
@@ -93,7 +95,7 @@ interface ReferralPayload {
   clinicalNotes?: string
   requiredSpecialty?: string
   requiredBedType?: string
-  attachments: string[]
+  attachments?: string[]
 }
 
 export function CreateReferral() {
@@ -108,7 +110,7 @@ export function CreateReferral() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  // Referral form data
+  // Referral form data - REMOVED toHospital from here
   const [referralData, setReferralData] = useState({
     urgency: "ROUTINE" as "ROUTINE" | "URGENT" | "EMERGENCY",
     reasonForReferral: "",
@@ -117,6 +119,22 @@ export function CreateReferral() {
     requiredBedType: "",
     attachments: [] as string[],
   })
+
+  const [hospitals, setHospitals] = useState<Array<{ _id: string; name: string }>>([])
+
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      try {
+        const response = await apiClient.getHospitals()
+        const hospitalData = response.data || response
+        const hospitalsList = Array.isArray(hospitalData) ? hospitalData : []
+        setHospitals(hospitalsList)
+      } catch (err) {
+        console.error("Error fetching hospitals:", err)
+      }
+    }
+    fetchHospitals()
+  }, [])
 
   const handleSearchPatient = async () => {
     if (!searchQuery.trim()) {
@@ -230,8 +248,11 @@ export function CreateReferral() {
         return
       }
 
-      // Create payload - ONLY fields allowed by CreateReferralDto
+      // Create base payload WITHOUT toHospital
       const referralPayload: ReferralPayload = {
+        fromHospital: user.hospitalId,
+        doctorName: user.name || user.email || "Doctor",
+        // Send patient as an object (required by backend)
         patient: {
           fullName: foundPatient.fullName,
           sex: foundPatient.sex,
@@ -252,12 +273,12 @@ export function CreateReferral() {
 
       console.log("[Save Draft] Sending payload:", JSON.stringify(referralPayload, null, 2))
 
-      // Use the regular create endpoint
-      const response = await apiClient.createReferral(referralPayload as any)
+      // Use the regular create endpoint - backend automatically creates as DRAFT
+      const response = await apiClient.createReferral(referralPayload)
       
       console.log("[Save Draft] Response:", response)
       
-      setSuccess("Referral saved as draft successfully! The liaison officer will review and send it to a target hospital.")
+      setSuccess("Referral saved as draft successfully! The liaison officer will review and send it.")
       
       // Reset form after successful save
       setTimeout(() => {
@@ -321,8 +342,11 @@ export function CreateReferral() {
         return
       }
 
-      // Create payload - ONLY fields allowed by CreateReferralDto
+      // Create base payload WITHOUT toHospital
       const referralPayload: ReferralPayload = {
+        fromHospital: user.hospitalId,
+        doctorName: user.name || user.email || "Doctor",
+        // Send patient as an object (required by backend)
         patient: {
           fullName: foundPatient.fullName,
           sex: foundPatient.sex,
@@ -344,7 +368,7 @@ export function CreateReferral() {
       console.log("[Submit Referral] Full payload:", JSON.stringify(referralPayload, null, 2))
 
       // Call the regular create endpoint
-      const referral = await apiClient.createReferral(referralPayload as any)
+      const referral = await apiClient.createReferral(referralPayload)
       console.log("[Submit Referral] Response:", referral)
       
       const referralId = referral._id || referral.data?._id
@@ -356,7 +380,7 @@ export function CreateReferral() {
 
       console.log("[Submit Referral] Referral created with ID:", referralId)
 
-      setSuccess("Referral created successfully! The liaison officer will review and send it to a target hospital.")
+      setSuccess("Referral created successfully! The liaison officer will review and send it.")
       
       // Reset form
       setTimeout(() => {
@@ -440,7 +464,7 @@ export function CreateReferral() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Create Referral</h2>
-        <p className="text-muted-foreground">Search for existing patient and create a referral draft</p>
+        <p className="text-muted-foreground">Search for existing patient and create a referral</p>
       </div>
 
       {error && (
@@ -673,46 +697,29 @@ export function CreateReferral() {
           <CardHeader>
             <CardTitle>Referral Details</CardTitle>
             <CardDescription>
-              Create referral draft for {foundPatient.fullName}. The liaison officer will select the target hospital.
+              Create referral for {foundPatient.fullName}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-200 mb-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium text-blue-800">Note for Doctors</p>
-                  <p className="text-sm text-blue-700 mt-1">
-                    You are creating a referral draft. The liaison officer will:
-                  </p>
-                  <ul className="text-sm text-blue-700 mt-2 space-y-1 ml-4 list-disc">
-                    <li>Review and finalize this referral</li>
-                    <li>Select the target hospital</li>
-                    <li>Send it to the receiving hospital</li>
-                  </ul>
-                </div>
+            {/* REMOVED the Target Hospital dropdown section since toHospital is not in backend */}
+            
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="urgency">Urgency Level *</Label>
+                <Select
+                  value={referralData.urgency}
+                  onValueChange={(value: any) => setReferralData({ ...referralData, urgency: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ROUTINE">Routine</SelectItem>
+                    <SelectItem value="URGENT">Urgent</SelectItem>
+                    <SelectItem value="EMERGENCY">Emergency</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="urgency">Urgency Level *</Label>
-              <Select
-                value={referralData.urgency}
-                onValueChange={(value: any) => setReferralData({ ...referralData, urgency: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ROUTINE">Routine</SelectItem>
-                  <SelectItem value="URGENT">Urgent</SelectItem>
-                  <SelectItem value="EMERGENCY">Emergency</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">

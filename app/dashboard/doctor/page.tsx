@@ -7,12 +7,14 @@ import { PatientsList } from "./components/patients-list"
 import { CreateReferral } from "./components/create-referral"
 import { SecureHistoryViewer } from "./components/secure-history-viewer"
 import { ReferralStatus } from "./components/referral-status"
+import { SpecialistQueue } from "./components/specialist-queue"
 import { useState } from "react"
 
 type DoctorPage =
   | "overview"
   | "patients"
   | "create-referral"
+  | "specialist-queue"
   | "secure-history"
   | "referral-status"
   | "reports"
@@ -29,6 +31,8 @@ export default function DoctorDashboard() {
         return <PatientsList />
       case "create-referral":
         return <CreateReferral />
+      case "specialist-queue":
+        return <SpecialistQueue />
       case "secure-history":
         return <SecureHistoryViewer />
       case "referral-status":
