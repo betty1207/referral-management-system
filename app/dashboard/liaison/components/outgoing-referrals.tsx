@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Eye, Loader2, Send, Clipboard, AlertCircle } from "lucide-react"
+import { Search, Eye, Loader2, Send, Clipboard, AlertCircle, QrCode } from "lucide-react"
 import { useState, useEffect } from "react"
+import QRCode from "qrcode"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -58,6 +59,8 @@ export function OutgoingReferrals() {
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [showSendDialog, setShowSendDialog] = useState(false)
+  const [showQRDialog, setShowQRDialog] = useState(false)
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("")
   const [targetHospitalId, setTargetHospitalId] = useState("")
   const [isSending, setIsSending] = useState(false)
 
@@ -191,6 +194,37 @@ export function OutgoingReferrals() {
     alert(message)
   }
 
+  const generateQRCode = async (referral: Referral) => {
+    try {
+      const qrData = {
+        referralId: referral._id,
+        referralCode: referral.referralCode,
+        patientName: referral.patientName,
+        patientPhone: referral.patientPhone,
+        fromHospital: getHospitalName(referral.fromHospital),
+        toHospital: getHospitalName(referral.toHospital),
+        urgency: referral.urgency,
+        status: "ACCEPTED", // Always show ACCEPTED in QR code, not current status
+        timestamp: new Date().toISOString()
+      }
+      
+      const dataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+      
+      setQrCodeDataUrl(dataUrl)
+      setShowQRDialog(true)
+    } catch (err: any) {
+      console.error("Error generating QR code:", err)
+      setError("Failed to generate QR code")
+    }
+  }
+
   const filteredReferrals = referrals.filter((referral) => {
     if (!searchTerm) return true
     const searchLower = searchTerm.toLowerCase()
@@ -283,6 +317,17 @@ export function OutgoingReferrals() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
+                      {referral.status === "ACCEPTED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => generateQRCode(referral)}
+                          title="Generate QR Code"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </Button>
+                      )}
                       {referral.status === "DRAFT" && (
                         <Button
                           variant="default"
@@ -478,6 +523,59 @@ export function OutgoingReferrals() {
                       Send Referral
                     </>
                   )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={showQRDialog} onOpenChange={setShowQRDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Referral QR Code</DialogTitle>
+            <DialogDescription>
+              QR code for patient check-in at the receiving hospital
+            </DialogDescription>
+          </DialogHeader>
+          {selectedReferral && qrCodeDataUrl && (
+            <div className="space-y-4">
+              <div className="text-center">
+                <img 
+                  src={qrCodeDataUrl} 
+                  alt="Referral QR Code" 
+                  className="w-48 h-48 mx-auto border border-gray-200 rounded-lg"
+                />
+                <p className="text-sm text-gray-600 mt-2">
+                  QR Code for {selectedReferral.patientName}
+                </p>
+              </div>
+              <div className="text-xs text-gray-500 space-y-1">
+                <p>Referral Code: {selectedReferral.referralCode}</p>
+                <p>Patient: {selectedReferral.patientName}</p>
+                <p>Hospital: {getHospitalName(selectedReferral.toHospital)}</p>
+                <p className="text-green-600 font-medium">✓ Ready for check-in</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    const link = document.createElement('a')
+                    link.download = `referral-qr-${selectedReferral.referralCode}.png`
+                    link.href = qrCodeDataUrl
+                    link.click()
+                  }}
+                >
+                  Download QR Code
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowQRDialog(false)}
+                >
+                  Close
                 </Button>
               </div>
             </div>
