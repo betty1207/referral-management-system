@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { LayoutGrid, Users, Plus, Shield, BarChart3, User, History, Activity } from "lucide-react"
 
-type DoctorPage =
+export type DoctorPage =
   | "overview"
   | "patients"
   | "create-referral"

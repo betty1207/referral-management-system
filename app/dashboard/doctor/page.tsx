@@ -1,7 +1,7 @@
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { DoctorSidebar } from "./sidebar"
+import { DoctorSidebar, type DoctorPage } from "./sidebar"
 import { DashboardOverview } from "./components/dashboard-overview"
 import { PatientsList } from "./components/patients-list"
 import { CreateReferral } from "./components/create-referral"
@@ -9,16 +9,6 @@ import { SecureHistoryViewer } from "./components/secure-history-viewer"
 import { ReferralStatus } from "./components/referral-status"
 import { SpecialistQueue } from "./components/specialist-queue"
 import { useState } from "react"
-
-type DoctorPage =
-  | "overview"
-  | "patients"
-  | "create-referral"
-  | "specialist-queue"
-  | "secure-history"
-  | "referral-status"
-  | "reports"
-  | "profile"
 
 export default function DoctorDashboard() {
   const [currentPage, setCurrentPage] = useState<DoctorPage>("overview")
