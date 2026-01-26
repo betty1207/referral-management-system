@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Eye, Loader2, Send, Clipboard, AlertCircle } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Search, Eye, Loader2, Send, Clipboard, AlertCircle, CheckCircle, XCircle, Clock, QrCode, Hospital, Bell } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -61,7 +61,7 @@ export function OutgoingReferrals() {
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [targetHospitalId, setTargetHospitalId] = useState("")
   const [isSending, setIsSending] = useState(false)
-
+  
   const fetchOutgoingReferrals = async () => {
     if (!user?.token) {
       setError("Authentication token missing")
@@ -209,6 +209,18 @@ export function OutgoingReferrals() {
   const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text)
     alert(message)
+  }
+
+  const viewReferralDetails = async (referral: Referral) => {
+    try {
+      // Get the latest referral data
+      const response = await apiClient.getReferralById(referral._id)
+      const latestReferral = response.data || response
+      setSelectedReferral(latestReferral)
+      setShowDetailsDialog(true)
+    } catch (err: any) {
+      setError(err.message || "Failed to load referral details")
+    }
   }
 
   const filteredReferrals = referrals.filter((referral) => {
@@ -425,6 +437,45 @@ export function OutgoingReferrals() {
                   <Label className="text-xs text-muted-foreground">Clinical Notes</Label>
                   <div className="mt-1 p-3 bg-gray-50 rounded-md">
                     <p className="text-sm">{selectedReferral.clinicalNotes}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Receiver Response (DecisionMeta) */}
+              {(selectedReferral as any).decisionMeta && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Receiver's Response</Label>
+                  <div className="mt-1 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-medium text-sm">Status:</span>{' '}
+                        <Badge className={getStatusColor(selectedReferral.status)}>
+                          {selectedReferral.status}
+                        </Badge>
+                      </div>
+                      {(selectedReferral as any).decisionMeta.justification && (
+                        <div>
+                          <span className="font-medium text-sm">Reason:</span>
+                          <p className="text-sm mt-1 italic">"{(selectedReferral as any).decisionMeta.justification}"</p>
+                        </div>
+                      )}
+                      {(selectedReferral as any).decisionMeta.appointmentDate && (
+                        <div>
+                          <span className="font-medium text-sm">Appointment Date:</span>{' '}
+                          <p className="text-sm">{formatDate((selectedReferral as any).decisionMeta.appointmentDate)}</p>
+                        </div>
+                      )}
+                      {(selectedReferral as any).acceptedAt && (
+                        <div className="text-xs text-gray-500">
+                          Accepted: {formatDate((selectedReferral as any).acceptedAt)}
+                        </div>
+                      )}
+                      {(selectedReferral as any).rejectedAt && (
+                        <div className="text-xs text-gray-500">
+                          Rejected: {formatDate((selectedReferral as any).rejectedAt)}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
