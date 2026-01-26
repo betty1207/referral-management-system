@@ -7,10 +7,10 @@ type LiaisonPage = "overview" | "incoming" | "outgoing" | "gate-checkin" | "comp
 
 interface LiaisonSidebarProps {
   currentPage: LiaisonPage
-  onPageChange: (page: LiaisonPage) => void
+  onPageChangeAction: (page: LiaisonPage) => void
 }
 
-export function LiaisonSidebar({ currentPage, onPageChange }: LiaisonSidebarProps) {
+export function LiaisonSidebar({ currentPage, onPageChangeAction }: LiaisonSidebarProps) {
   const menuItems = [
     { id: "overview" as LiaisonPage, label: "Dashboard Overview", icon: LayoutGrid },
     { id: "incoming" as LiaisonPage, label: "Incoming Referrals", icon: ClipboardList },
@@ -32,7 +32,7 @@ export function LiaisonSidebar({ currentPage, onPageChange }: LiaisonSidebarProp
               key={item.id}
               variant={currentPage === item.id ? "secondary" : "ghost"}
               className="w-full justify-start gap-3"
-              onClick={() => onPageChange(item.id)}
+              onClick={() => onPageChangeAction(item.id)}
             >
               <item.icon className="w-4 h-4" />
               {item.label}
