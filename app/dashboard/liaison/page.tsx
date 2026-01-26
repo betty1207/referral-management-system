@@ -54,7 +54,7 @@ export default function LiaisonDashboard() {
       case "incoming":
         return (
           <IncomingReferrals
-            onSelectReferral={handleSelectReferral}
+            onSelectReferralAction={handleSelectReferral}
           />
         )
       case "outgoing":
@@ -81,7 +81,7 @@ export default function LiaisonDashboard() {
       sidebar={
         <LiaisonSidebar 
           currentPage={currentPage} 
-          onPageChange={(page: LiaisonPage) => {
+          onPageChangeAction={(page: LiaisonPage) => {
             setCurrentPage(page)
             setShowApprovalForm(false)
             setSelectedReferral(null)

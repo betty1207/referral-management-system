@@ -25,10 +25,10 @@ interface Referral {
 }
 
 interface IncomingReferralsProps {
-  onSelectReferral: (id: string) => void
+  onSelectReferralAction: (id: string) => void
 }
 
-export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) {
+export function IncomingReferrals({ onSelectReferralAction }: IncomingReferralsProps) {
   const { user } = useAuth()
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -155,7 +155,7 @@ export function IncomingReferrals({ onSelectReferral }: IncomingReferralsProps) 
                       </p>
                     </div>
                     <Button
-                      onClick={() => onSelectReferral(referral._id)}
+                      onClick={() => onSelectReferralAction(referral._id)}
                       variant="outline"
                       size="sm"
                       className="gap-2"
