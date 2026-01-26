@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, ClipboardList, Send, Activity, HelpCircle } from "lucide-react"
+import { LayoutGrid, ClipboardList, Send, Activity, Bell, HelpCircle, Clock } from "lucide-react"
 
-type LiaisonPage = "overview" | "incoming" | "outgoing" | "follow-up" | "support"
+type LiaisonPage = "overview" | "incoming" | "outgoing" | "gate-checkin" | "completed" | "support"
 
 interface LiaisonSidebarProps {
   currentPage: LiaisonPage
@@ -15,7 +15,8 @@ export function LiaisonSidebar({ currentPage, onPageChange }: LiaisonSidebarProp
     { id: "overview" as LiaisonPage, label: "Dashboard Overview", icon: LayoutGrid },
     { id: "incoming" as LiaisonPage, label: "Incoming Referrals", icon: ClipboardList },
     { id: "outgoing" as LiaisonPage, label: "Outgoing Referrals", icon: Send },
-    { id: "follow-up" as LiaisonPage, label: "Follow-up & Feedback", icon: Activity },
+    { id: "gate-checkin" as LiaisonPage, label: "Gate Check-in", icon: Activity },
+    { id: "completed" as LiaisonPage, label: "Completed Referrals", icon: Activity },
     { id: "support" as LiaisonPage, label: "Help & Support", icon: HelpCircle },
   ]
 
