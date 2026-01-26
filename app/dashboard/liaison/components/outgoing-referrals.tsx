@@ -61,6 +61,7 @@ export function OutgoingReferrals() {
   const [showSendDialog, setShowSendDialog] = useState(false)
   const [showQRDialog, setShowQRDialog] = useState(false)
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("")
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false)
   const [targetHospitalId, setTargetHospitalId] = useState("")
   const [isSending, setIsSending] = useState(false)
 
@@ -196,6 +197,9 @@ export function OutgoingReferrals() {
 
   const generateQRCode = async (referral: Referral) => {
     try {
+      setIsGeneratingQR(true)
+      setError("")
+      
       const qrData = {
         referralId: referral._id,
         referralCode: referral.referralCode,
@@ -218,10 +222,13 @@ export function OutgoingReferrals() {
       })
       
       setQrCodeDataUrl(dataUrl)
+      setSelectedReferral(referral) // Set the selected referral for the dialog
       setShowQRDialog(true)
     } catch (err: any) {
       console.error("Error generating QR code:", err)
       setError("Failed to generate QR code")
+    } finally {
+      setIsGeneratingQR(false)
     }
   }
 
