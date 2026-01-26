@@ -110,6 +110,17 @@ export function GateCheckIn() {
         return
       }
 
+      // IMPORTANT: Prevent scanning at the same hospital that sent the referral
+      const currentUserHospitalId = user?.hospitalId
+      const fromHospitalId = typeof referral.fromHospital === 'object' 
+        ? referral.fromHospital._id 
+        : referral.fromHospital
+      
+      if (currentUserHospitalId === fromHospitalId) {
+        setError("This QR code cannot be scanned at the same hospital that sent the referral. It must be scanned at the receiving facility.")
+        return
+      }
+
       // Check if already checked in
       try {
         const checkInResponse = await apiClient.get(`/check-ins/${qrData.referralId}`)
@@ -241,6 +252,17 @@ export function GateCheckIn() {
           referral.patientName !== qrData.patientName ||
           referral.status !== "ACCEPTED") {
         setError("Invalid QR code or referral not accepted for check-in")
+        return
+      }
+
+      // IMPORTANT: Prevent scanning at the same hospital that sent the referral
+      const currentUserHospitalId = user?.hospitalId
+      const fromHospitalId = typeof referral.fromHospital === 'object' 
+        ? referral.fromHospital._id 
+        : referral.fromHospital
+      
+      if (currentUserHospitalId === fromHospitalId) {
+        setError("This QR code cannot be scanned at the same hospital that sent the referral. It must be scanned at the receiving facility.")
         return
       }
 
