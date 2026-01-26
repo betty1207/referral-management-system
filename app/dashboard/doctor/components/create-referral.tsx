@@ -78,19 +78,17 @@ const formatAndValidateEthiopianPhone = (phone: string): {
 }
 
 interface ReferralPayload {
-  fromHospital: string
-  doctorName: string
   patient: {
     fullName: string
-    sex: "Male" | "Female"
+    sex: string
     dateOfBirth: string
-    nationalId?: string
     phone: string
+    nationalId?: string
     address?: string
   }
   patientName: string
   patientPhone: string
-  urgency: "ROUTINE" | "URGENT" | "EMERGENCY"
+  urgency: string
   reasonForReferral: string
   clinicalNotes?: string
   requiredSpecialty?: string
@@ -248,10 +246,8 @@ export function CreateReferral() {
         return
       }
 
-      // Create base payload WITHOUT toHospital
+      // Create base payload
       const referralPayload: ReferralPayload = {
-        fromHospital: user.hospitalId,
-        doctorName: user.name || user.email || "Doctor",
         // Send patient as an object (required by backend)
         patient: {
           fullName: foundPatient.fullName,
@@ -342,10 +338,8 @@ export function CreateReferral() {
         return
       }
 
-      // Create base payload WITHOUT toHospital
+      // Create base payload
       const referralPayload: ReferralPayload = {
-        fromHospital: user.hospitalId,
-        doctorName: user.name || user.email || "Doctor",
         // Send patient as an object (required by backend)
         patient: {
           fullName: foundPatient.fullName,

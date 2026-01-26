@@ -51,12 +51,206 @@ export function GateCheckIn() {
     setCheckedInReferral(null)
 
     try {
-      const response = await apiClient.gateCheckIn(referralCode)
-      setCheckedInReferral(response)
-      setSuccess("Patient checked in successfully!")
-      setReferralCode("")
+      console.log("[DEBUG] Starting simple referral code check-in...")
+      console.log("[DEBUG] Referral Code:", referralCode)
+      console.log("[DEBUG] User hospital ID:", user?.hospitalId)
+
+      // PRE-VALIDATION: Get referral details FIRST before any check-in
+      console.log("[DEBUG] Getting referral details for pre-validation...")
+      
+      let referral = null
+      
+      // Try to get referral details using the GET /referrals endpoint
+      try {
+        console.log("[DEBUG] Trying GET /referrals with hospital filter...")
+        
+        // Use hospital-specific endpoint that liaison officers can access
+        const currentUserHospitalId = user?.hospitalId
+        console.log("[DEBUG] Current user hospital ID:", currentUserHospitalId)
+        
+        // Try different approaches to get referrals
+        let referralList = null
+        
+        // Method 1: Try with hospital filter
+        try {
+          const referrals = await apiClient.get(`/referrals?toHospital=${currentUserHospitalId}`)
+          referralList = referrals.data || referrals
+          console.log("[DEBUG] Referrals for receiving hospital:", referralList)
+        } catch (err) {
+          console.log("[DEBUG] toHospital filter failed, trying fromHospital filter...")
+        }
+        
+        // Method 2: Try from hospital filter
+        if (!referralList) {
+          try {
+            const referrals = await apiClient.get(`/referrals?fromHospital=${currentUserHospitalId}`)
+            referralList = referrals.data || referrals
+            console.log("[DEBUG] Referrals from sending hospital:", referralList)
+          } catch (err) {
+            console.log("[DEBUG] fromHospital filter failed, trying hospitalId filter...")
+          }
+        }
+        
+        // Method 3: Try hospitalId filter
+        if (!referralList) {
+          try {
+            const referrals = await apiClient.get(`/referrals?hospitalId=${currentUserHospitalId}`)
+            referralList = referrals.data || referrals
+            console.log("[DEBUG] Referrals for hospital:", referralList)
+          } catch (err) {
+            console.log("[DEBUG] hospitalId filter failed, trying without filter...")
+          }
+        }
+        
+        // Method 4: Try without filter (last resort)
+        if (!referralList) {
+          try {
+            const referrals = await apiClient.get(`/referrals`)
+            referralList = referrals.data || referrals
+            console.log("[DEBUG] All referrals:", referralList)
+          } catch (err) {
+            console.log("[DEBUG] All methods failed")
+          }
+        }
+        
+        // Show all available referral codes for debugging
+        if (Array.isArray(referralList)) {
+          const availableCodes = referralList.map((r: any) => ({
+            code: r.referralCode,
+            patient: r.patientName,
+            status: r.status,
+            from: r.fromHospital,
+            to: r.toHospital
+          }))
+          console.log("[DEBUG] Available referral codes:", availableCodes)
+          
+          // Also log just the codes for easy copying
+          const justCodes = referralList.map((r: any) => r.referralCode)
+          console.log("[DEBUG] Available codes (copy these):", justCodes.join(", "))
+          
+          // Find referral by exact code match
+          referral = referralList.find((r: any) => r.referralCode === referralCode.trim())
+          console.log("[DEBUG] Looking for code:", referralCode.trim())
+          console.log("[DEBUG] Exact match found:", referral)
+          
+          if (!referral) {
+            console.log("[DEBUG] Code not found! Available codes are:")
+            justCodes.forEach((code: string, index: number) => {
+              console.log(`${index + 1}. ${code}`)
+            })
+          }
+        }
+      } catch (err: any) {
+        console.log("[DEBUG] GET /referrals failed:", err.message)
+        console.log("[DEBUG] Cannot pre-validate, proceeding with direct check-in...")
+      }
+
+      // CRITICAL: If we found the referral, validate hospitals BEFORE calling gate-check-in
+      if (referral) {
+        console.log("[DEBUG] Found referral, performing pre-validation...")
+        console.log("[DEBUG] Full referral object:", referral)
+        
+        const currentUserHospitalId = user?.hospitalId
+        const fromHospitalId = typeof referral.fromHospital === 'object' 
+          ? referral.fromHospital._id 
+          : referral.fromHospital
+        const toHospitalId = typeof referral.toHospital === 'object' 
+          ? referral.toHospital._id 
+          : referral.toHospital
+        
+        console.log("[DEBUG] PRE-VALIDATION hospital check:")
+        console.log("- User hospital ID:", currentUserHospitalId)
+        console.log("- From hospital:", referral.fromHospital)
+        console.log("- From hospital ID:", fromHospitalId)
+        console.log("- To hospital:", referral.toHospital)
+        console.log("- To hospital ID:", toHospitalId)
+        console.log("- Same as sending hospital:", currentUserHospitalId === fromHospitalId)
+        console.log("- Same as receiving hospital:", currentUserHospitalId === toHospitalId)
+        console.log("- Referral status:", referral.status)
+        
+        // Check if referral is already checked in
+        if (referral.status === "CHECKED_IN") {
+          console.log("[DEBUG] Referral already checked in!")
+          setError("This patient has already been checked in.")
+          return
+        }
+        
+        // Check if referral is accepted (only accepted referrals can be checked in)
+        if (referral.status !== "ACCEPTED") {
+          console.log("[DEBUG] Referral not accepted! Status:", referral.status)
+          setError(`This referral cannot be checked in. Current status: ${referral.status}. Only ACCEPTED referrals can be checked in.`)
+          return
+        }
+        
+        // BLOCK: Same hospital (sending hospital)
+        if (currentUserHospitalId === fromHospitalId) {
+          console.log("[DEBUG] BLOCKED: Same hospital as sender!")
+          setError("This referral cannot be checked in at the same hospital that sent it. It must be checked in at the receiving facility.")
+          return
+        }
+
+        // BLOCK: Wrong hospital (not receiving hospital)
+        if (currentUserHospitalId !== toHospitalId) {
+          console.log("[DEBUG] BLOCKED: Wrong hospital!")
+          setError(`This referral is sent to a different hospital. You can only check in this patient at the designated receiving facility. Current hospital: ${currentUserHospitalId}, Receiving hospital: ${toHospitalId}`)
+          return
+        }
+
+        console.log("[DEBUG] PRE-VALIDATION PASSED: Proceeding with gate check-in...")
+        
+        // Only proceed with gate-check-in if hospital validation passes
+        try {
+          const response = await apiClient.gateCheckIn(referralCode)
+          console.log("[DEBUG] Gate check-in successful:", response)
+          setCheckedInReferral(response)
+          setSuccess("Patient checked in successfully!")
+          setReferralCode("")
+          return
+        } catch (gateErr: any) {
+          console.log("[DEBUG] Gate check-in failed:", gateErr.message)
+          setError(gateErr.message || "Failed to check in patient")
+          return
+        }
+        
+      } else {
+        console.log("[DEBUG] Referral not found in pre-validation, trying direct gate-check-in...")
+        
+        // If referral not found in list, try direct gate-check-in as fallback
+        try {
+          const directResponse = await apiClient.gateCheckIn(referralCode.trim())
+          console.log("[DEBUG] Direct gate-check-in SUCCESS:", directResponse)
+          
+          // Check if this was the correct hospital
+          const currentUserHospitalId = user?.hospitalId
+          const toHospitalId = typeof directResponse.toHospital === 'object' 
+            ? directResponse.toHospital._id 
+            : directResponse.toHospital
+          
+          if (currentUserHospitalId !== toHospitalId) {
+            console.log("[ERROR] Backend allowed check-in at wrong hospital!")
+            setError("SYSTEM ERROR: Check-in allowed at wrong hospital. This should have been blocked by the backend.")
+            return
+          }
+          
+          setCheckedInReferral(directResponse)
+          setSuccess("Patient checked in successfully!")
+          setReferralCode("")
+          return
+          
+        } catch (directErr: any) {
+          console.log("[DEBUG] Direct gate-check-in also failed:", directErr.message)
+          setError(`Referral ${referralCode} not found or cannot be checked in. ${directErr.message}`)
+          return
+        }
+      }
+      
     } catch (err: any) {
       console.error("Error checking in:", err)
+      // The backend should return appropriate error messages for:
+      // - Wrong hospital validation
+      // - Referral not found
+      // - Already checked in
+      // - Invalid status
       setError(err.message || "Failed to check in patient")
     } finally {
       setIsLoading(false)
@@ -93,31 +287,62 @@ export function GateCheckIn() {
     setCheckedInReferral(null)
 
     try {
+      console.log("[DEBUG] Starting QR code check-in process...")
+      console.log("[DEBUG] QR Data:", qrData)
+
       // First verify the referral exists and is valid
       const response = await apiClient.getReferralById(qrData.referralId)
       const referral = response.data || response
 
+      console.log("[DEBUG] Referral from API:", referral)
+
       if (!referral) {
+        console.log("[DEBUG] Referral not found!")
         setError("Referral not found in system")
         return
       }
 
       // Verify the QR data matches the referral
+      console.log("[DEBUG] Checking QR data match...")
+      console.log("[DEBUG] Referral codes match:", referral.referralCode, "vs", qrData.referralCode)
+      console.log("[DEBUG] Patient names match:", referral.patientName, "vs", qrData.patientName)
+      console.log("[DEBUG] Referral status:", referral.status, "vs ACCEPTED")
+
       if (referral.referralCode !== qrData.referralCode || 
           referral.patientName !== qrData.patientName ||
           referral.status !== "ACCEPTED") {
+        console.log("[DEBUG] QR validation failed!")
         setError("Invalid QR code or referral not accepted for check-in")
         return
       }
+
+      console.log("[DEBUG] QR validation passed, proceeding to hospital validation...")
 
       // IMPORTANT: Prevent scanning at the same hospital that sent the referral
       const currentUserHospitalId = user?.hospitalId
       const fromHospitalId = typeof referral.fromHospital === 'object' 
         ? referral.fromHospital._id 
         : referral.fromHospital
-      
+
+      // Get the receiving hospital ID
+      const toHospitalId = typeof referral.toHospital === 'object' 
+        ? referral.toHospital._id 
+        : referral.toHospital
+
+      console.log("[DEBUG] Current user hospital ID:", currentUserHospitalId)
+      console.log("[DEBUG] From hospital ID:", fromHospitalId)
+      console.log("[DEBUG] To hospital ID:", toHospitalId)
+
       if (currentUserHospitalId === fromHospitalId) {
+        console.log("[DEBUG] Same hospital error!")
         setError("This QR code cannot be scanned at the same hospital that sent the referral. It must be scanned at the receiving facility.")
+        return
+      }
+
+      // CRITICAL: Only allow check-in at the correct receiving hospital
+      if (currentUserHospitalId !== toHospitalId) {
+        console.log("[DEBUG] Different hospital error!")
+        setError(`This referral is sent to a different hospital. You can only check in this patient at the designated receiving facility. Current hospital: ${currentUserHospitalId}, Receiving hospital: ${toHospitalId}`)
         return
       }
 
@@ -125,6 +350,7 @@ export function GateCheckIn() {
       try {
         const checkInResponse = await apiClient.get(`/check-ins/${qrData.referralId}`)
         if (checkInResponse.data) {
+          console.log("[DEBUG] Already checked in error!")
           setError("Patient already checked in")
           return
         }
@@ -145,7 +371,7 @@ export function GateCheckIn() {
 
       // Use the existing gate check-in API
       const checkInResult = await apiClient.gateCheckIn(qrData.referralCode)
-      
+
       setCheckedInReferral({
         ...checkInResult,
         ...qrData
@@ -178,17 +404,17 @@ export function GateCheckIn() {
     try {
       setCameraError("")
       setIsScanning(true)
-      
+
       const codeReader = new BrowserMultiFormatReader()
       codeReaderRef.current = codeReader
-      
+
       const videoInputDevices = await codeReader.listVideoInputDevices()
       if (videoInputDevices.length === 0) {
         throw new Error("No camera devices found")
       }
-      
+
       const selectedDeviceId = videoInputDevices[0].deviceId
-      
+
       await codeReader.decodeFromVideoDevice(selectedDeviceId, videoRef.current!, (result, error) => {
         if (result) {
           handleQRCodeScan(result)
@@ -197,7 +423,7 @@ export function GateCheckIn() {
           console.error("QR scan error:", error)
         }
       })
-      
+
     } catch (err: any) {
       console.error("Camera error:", err)
       setCameraError(err.message || "Failed to access camera")
@@ -217,7 +443,7 @@ export function GateCheckIn() {
   const handleQRCodeScan = async (result: Result) => {
     const qrText = result.getText()
     const qrData = parseQRData(qrText)
-    
+
     if (!qrData) {
       setError("Invalid QR code format")
       return
@@ -238,22 +464,36 @@ export function GateCheckIn() {
     setCheckedInReferral(null)
 
     try {
+      console.log("[DEBUG] Starting QR code check-in process...")
+      console.log("[DEBUG] QR Data:", qrData)
+
       // First verify the referral exists and is valid
       const response = await apiClient.getReferralById(qrData.referralId)
       const referral = response.data || response
 
+      console.log("[DEBUG] Referral from API:", referral)
+
       if (!referral) {
+        console.log("[DEBUG] Referral not found!")
         setError("Referral not found in system")
         return
       }
 
       // Verify the QR data matches the referral
+      console.log("[DEBUG] Checking QR data match...")
+      console.log("[DEBUG] Referral codes match:", referral.referralCode, "vs", qrData.referralCode)
+      console.log("[DEBUG] Patient names match:", referral.patientName, "vs", qrData.patientName)
+      console.log("[DEBUG] Referral status:", referral.status, "vs ACCEPTED")
+      
       if (referral.referralCode !== qrData.referralCode || 
           referral.patientName !== qrData.patientName ||
           referral.status !== "ACCEPTED") {
+        console.log("[DEBUG] QR validation failed!")
         setError("Invalid QR code or referral not accepted for check-in")
         return
       }
+
+      console.log("[DEBUG] QR validation passed, proceeding to hospital validation...")
 
       // IMPORTANT: Prevent scanning at the same hospital that sent the referral
       const currentUserHospitalId = user?.hospitalId
@@ -261,8 +501,28 @@ export function GateCheckIn() {
         ? referral.fromHospital._id 
         : referral.fromHospital
       
+      // Get the receiving hospital ID
+      const toHospitalId = typeof referral.toHospital === 'object' 
+        ? referral.toHospital._id 
+        : referral.toHospital
+      
+      // DEBUG: Log the values to understand the data structure
+      console.log("=== HOSPITAL VALIDATION DEBUG ===")
+      console.log("Current user hospital ID:", currentUserHospitalId)
+      console.log("From hospital:", referral.fromHospital)
+      console.log("From hospital ID:", fromHospitalId)
+      console.log("To hospital:", referral.toHospital)
+      console.log("To hospital ID:", toHospitalId)
+      console.log("================================")
+      
       if (currentUserHospitalId === fromHospitalId) {
         setError("This QR code cannot be scanned at the same hospital that sent the referral. It must be scanned at the receiving facility.")
+        return
+      }
+
+      // CRITICAL: Only allow check-in at the correct receiving hospital
+      if (currentUserHospitalId !== toHospitalId) {
+        setError(`This referral is sent to a different hospital. You can only check in this patient at the designated receiving facility. Current hospital: ${currentUserHospitalId}, Receiving hospital: ${toHospitalId}`)
         return
       }
 
