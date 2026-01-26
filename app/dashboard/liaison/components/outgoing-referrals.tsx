@@ -4,11 +4,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Eye, Loader2, Send } from "lucide-react"
+import { Search, Eye, Loader2, Send, Clipboard, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 interface Referral {
   _id: string
@@ -22,15 +38,29 @@ interface Referral {
   reasonForReferral: string
   clinicalNotes?: string
   createdAt: string
-  createdBy?: { fullName: string } | string
+  createdBy?: { fullName: string } | string | null // Allow null
+  doctorName?: string // Add optional doctorName field
+}
+
+interface Hospital {
+  _id: string
+  name: string
 }
 
 export function OutgoingReferrals() {
   const { user } = useAuth()
   const [referrals, setReferrals] = useState<Referral[]>([])
+  const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isHospitalsLoading, setIsHospitalsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null)
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false)
+  const [showSendDialog, setShowSendDialog] = useState(false)
+  const [targetHospitalId, setTargetHospitalId] = useState("")
+  const [isSending, setIsSending] = useState(false)
 
   const fetchOutgoingReferrals = async () => {
     if (!user?.token) {
@@ -42,6 +72,7 @@ export function OutgoingReferrals() {
     try {
       setIsLoading(true)
       setError("")
+      setSuccess("")
       const response = await apiClient.getLiaisonOutbox()
       const referralData = response.data || response
       const outgoingReferrals = Array.isArray(referralData) ? referralData : []
@@ -54,9 +85,73 @@ export function OutgoingReferrals() {
     }
   }
 
+  const fetchHospitals = async () => {
+    if (!user?.token) return
+    
+    try {
+      setIsHospitalsLoading(true)
+      const response = await apiClient.getHospitals()
+      const hospitalData = response.data || response
+      const hospitalsList = Array.isArray(hospitalData) ? hospitalData : []
+      
+      // Filter out current user's hospital
+      const filteredHospitals = hospitalsList.filter((hospital: Hospital) => 
+        hospital._id !== user?.hospitalId
+      )
+      
+      setHospitals(filteredHospitals)
+    } catch (err: any) {
+      console.error("Error fetching hospitals:", err)
+    } finally {
+      setIsHospitalsLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchOutgoingReferrals()
+    fetchHospitals()
   }, [user?.token])
+
+  const handleViewDetails = (referral: Referral) => {
+    setSelectedReferral(referral)
+    setShowDetailsDialog(true)
+  }
+
+  const handleSendClick = (referral: Referral) => {
+    setSelectedReferral(referral)
+    setTargetHospitalId("")
+    setShowSendDialog(true)
+  }
+
+  const handleSendReferral = async () => {
+    if (!selectedReferral || !targetHospitalId) {
+      setError("Please select a target hospital")
+      return
+    }
+
+    setIsSending(true)
+    setError("")
+    setSuccess("")
+
+    try {
+      await apiClient.sendReferral(selectedReferral._id, targetHospitalId)
+      setSuccess(`Referral sent successfully to ${getHospitalNameById(targetHospitalId)}!`)
+      setShowSendDialog(false)
+      setSelectedReferral(null)
+      setTargetHospitalId("")
+      
+      // Refresh the list
+      await fetchOutgoingReferrals()
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(""), 3000)
+    } catch (err: any) {
+      console.error("Error sending referral:", err)
+      setError(err.message || "Failed to send referral")
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   const getPriorityColor = (priority: string) => {
     const upperPriority = priority.toUpperCase()
@@ -87,8 +182,33 @@ export function OutgoingReferrals() {
     return hospital.name || "Not assigned"
   }
 
-  const handleSendReferral = async (referralId: string) => {
-    console.log("Send referral:", referralId)
+  const getHospitalNameById = (hospitalId: string) => {
+    const hospital = hospitals.find(h => h._id === hospitalId)
+    return hospital ? hospital.name : "Unknown Hospital"
+  }
+
+  // Helper function to safely get creator name
+  const getCreatorName = (referral: Referral): string => {
+    // Try doctorName first if available
+    if (referral.doctorName) return referral.doctorName
+    
+    // Try createdBy object with null check
+    if (referral.createdBy && typeof referral.createdBy === 'object') {
+      return referral.createdBy.fullName || "Doctor"
+    }
+    
+    // If createdBy is a string
+    if (typeof referral.createdBy === 'string') {
+      return referral.createdBy
+    }
+    
+    // Fallback
+    return "Doctor"
+  }
+
+  const copyToClipboard = (text: string, message: string) => {
+    navigator.clipboard.writeText(text)
+    alert(message)
   }
 
   const filteredReferrals = referrals.filter((referral) => {
@@ -105,7 +225,14 @@ export function OutgoingReferrals() {
     <div className="space-y-4">
       {error && (
         <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4 mr-2" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="bg-green-50 border-green-200">
+          <AlertDescription className="text-green-800">{success}</AlertDescription>
         </Alert>
       )}
 
@@ -151,15 +278,27 @@ export function OutgoingReferrals() {
                         <Badge className={getPriorityColor(referral.urgency)}>{referral.urgency}</Badge>
                         <Badge className={getStatusColor(referral.status)}>{referral.status}</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Ref: <span className="font-mono">{referral.referralCode || referral._id.substring(0, 8)}</span>
-                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>
+                          Ref: <span className="font-mono">{referral.referralCode || referral._id.substring(0, 8)}</span>
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => copyToClipboard(referral._id, `Copied Referral ID: ${referral._id}`)}
+                          title="Copy Referral ID"
+                        >
+                          <Clipboard className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         className="gap-2"
+                        onClick={() => handleViewDetails(referral)}
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -168,7 +307,7 @@ export function OutgoingReferrals() {
                         <Button
                           variant="default"
                           size="sm"
-                          onClick={() => handleSendReferral(referral._id)}
+                          onClick={() => handleSendClick(referral)}
                           className="bg-green-600 hover:bg-green-700 gap-2"
                           title="Send Referral"
                         >
@@ -189,9 +328,7 @@ export function OutgoingReferrals() {
                     <div>
                       <p className="text-muted-foreground">Created By</p>
                       <p className="font-medium">
-                        {typeof referral.createdBy === 'object' 
-                          ? referral.createdBy.fullName 
-                          : "Doctor"}
+                        {getCreatorName(referral)}
                       </p>
                     </div>
                     <div>
@@ -205,6 +342,164 @@ export function OutgoingReferrals() {
           )}
         </CardContent>
       </Card>
+
+      {/* View Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Referral Details</DialogTitle>
+            <DialogDescription>Complete details of this referral</DialogDescription>
+          </DialogHeader>
+          {selectedReferral && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Referral ID</Label>
+                  <div className="flex items-center gap-2">
+                    <code className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                      {selectedReferral._id}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => copyToClipboard(selectedReferral._id, "Copied Referral ID")}
+                    >
+                      <Clipboard className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Referral Code</Label>
+                  <p className="font-mono text-sm">{selectedReferral.referralCode || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Patient Name</Label>
+                  <p className="text-sm font-medium">{selectedReferral.patientName}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Patient Phone</Label>
+                  <p className="text-sm font-medium">{selectedReferral.patientPhone}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">From Hospital</Label>
+                  <p className="text-sm">{getHospitalName(selectedReferral.fromHospital)}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">To Hospital</Label>
+                  <p className="text-sm">{getHospitalName(selectedReferral.toHospital)}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Priority</Label>
+                  <Badge className={getPriorityColor(selectedReferral.urgency)}>
+                    {selectedReferral.urgency}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <Badge className={getStatusColor(selectedReferral.status)}>
+                    {selectedReferral.status}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Created By</Label>
+                  <p className="text-sm">
+                    {getCreatorName(selectedReferral)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Created Date</Label>
+                  <p className="text-sm">{formatDate(selectedReferral.createdAt)}</p>
+                </div>
+              </div>
+              
+              <div>
+                <Label className="text-xs text-muted-foreground">Reason for Referral</Label>
+                <div className="mt-1 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm">{selectedReferral.reasonForReferral || "N/A"}</p>
+                </div>
+              </div>
+              
+              {selectedReferral.clinicalNotes && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Clinical Notes</Label>
+                  <div className="mt-1 p-3 bg-gray-50 rounded-md">
+                    <p className="text-sm">{selectedReferral.clinicalNotes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Referral Dialog */}
+      <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Referral</DialogTitle>
+            <DialogDescription>
+              Select a target hospital to send this referral to
+            </DialogDescription>
+          </DialogHeader>
+          {selectedReferral && (
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-md">
+                <p className="font-medium">Patient: {selectedReferral.patientName}</p>
+                <p className="text-sm text-gray-600">
+                  Referral ID: <span className="font-mono">{selectedReferral._id.substring(0, 8)}...</span>
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="targetHospital">Target Hospital *</Label>
+                <Select value={targetHospitalId} onValueChange={setTargetHospitalId}>
+                  <SelectTrigger id="targetHospital" disabled={isHospitalsLoading}>
+                    <SelectValue placeholder={isHospitalsLoading ? "Loading hospitals..." : "Select hospital"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hospitals.map((hospital) => (
+                      <SelectItem key={hospital._id} value={hospital._id}>
+                        {hospital.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">
+                  Select the receiving hospital for this referral
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSendDialog(false)}
+                  disabled={isSending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSendReferral}
+                  disabled={isSending || !targetHospitalId}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Referral
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
