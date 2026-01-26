@@ -6,8 +6,7 @@ import { DashboardOverview } from "./components/dashboard-overview"
 import { PatientsList } from "./components/patients-list"
 import { CreateReferral } from "./components/create-referral"
 import { SecureHistoryViewer } from "./components/secure-history-viewer"
-import { ReferralStatus } from "./components/referral-status"
-import { SpecialistQueue } from "./components/specialist-queue"
+import { CompleteTreatmentPage } from "./components/complete-treatment"
 import { useState } from "react"
 
 export default function DoctorDashboard() {
@@ -22,11 +21,9 @@ export default function DoctorDashboard() {
       case "create-referral":
         return <CreateReferral />
       case "specialist-queue":
-        return <SpecialistQueue />
+        return <CompleteTreatmentPage />
       case "secure-history":
         return <SecureHistoryViewer />
-      case "referral-status":
-        return <ReferralStatus />
       case "reports":
         return <div className="p-6">Reports (Coming Soon)</div>
       case "profile":
