@@ -239,25 +239,25 @@ export function DashboardOverview() {
       label: "Total Hospitals",
       value: stats.hospitals,
       icon: Hospital,
-      color: "bg-blue-100 text-blue-600",
+      color: "bg-blue-50 text-blue-600 border-blue-100",
     },
     {
       label: "Hospital Admins",
       value: stats.hospitalAdmins,
       icon: Users,
-      color: "bg-purple-100 text-purple-600",
+      color: "bg-purple-50 text-purple-600 border-purple-100",
     },
     {
       label: "Doctors",
       value: stats.doctors,
       icon: Users,
-      color: "bg-green-100 text-green-600",
+      color: "bg-green-50 text-green-600 border-green-100",
     },
     {
       label: "Liaison Officers",
       value: stats.liaisonOfficers,
       icon: Activity,
-      color: "bg-orange-100 text-orange-600",
+      color: "bg-orange-50 text-orange-600 border-orange-100",
     },
   ]
 
@@ -266,26 +266,26 @@ export function DashboardOverview() {
       label: "Total Referrals",
       value: stats.totalReferrals,
       icon: FileText,
-      color: "bg-indigo-100 text-indigo-600",
+      color: "bg-indigo-50 text-indigo-600 border-indigo-100",
       trend: stats.todayReferrals > 0 ? "+" + stats.todayReferrals + " today" : "No referrals today"
     },
     {
       label: "Today's Referrals",
       value: stats.todayReferrals,
       icon: Calendar,
-      color: "bg-cyan-100 text-cyan-600",
+      color: "bg-cyan-50 text-cyan-600 border-cyan-100",
     },
     {
       label: "This Month",
       value: stats.monthReferrals,
       icon: TrendingUp,
-      color: "bg-emerald-100 text-emerald-600",
+      color: "bg-emerald-50 text-emerald-600 border-emerald-100",
     },
     {
       label: "Pending Review",
       value: stats.pendingReferrals,
       icon: Clock,
-      color: "bg-amber-100 text-amber-600",
+      color: "bg-amber-50 text-amber-600 border-amber-100",
     },
   ]
 
@@ -294,56 +294,56 @@ export function DashboardOverview() {
       label: "Pending",
       value: stats.pendingReferrals,
       icon: Clock,
-      color: "bg-amber-100 text-amber-600",
+      color: "bg-amber-50 text-amber-600 border-amber-100",
       variant: "secondary" as const
     },
     {
       label: "Approved",
       value: stats.approvedReferrals,
       icon: CheckCircle,
-      color: "bg-green-100 text-green-600",
+      color: "bg-green-50 text-green-600 border-green-100",
       variant: "default" as const
     },
     {
       label: "Rejected",
       value: stats.rejectedReferrals,
       icon: XCircle,
-      color: "bg-red-100 text-red-600",
+      color: "bg-red-50 text-red-600 border-red-100",
       variant: "destructive" as const
     },
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">System Overview</h2>
-          <p className="text-muted-foreground text-lg mt-1">Quick system overview and statistics</p>
+          <h2 className="text-2xl font-semibold text-gray-800">System Overview</h2>
+          <p className="text-gray-600 mt-1">Quick system overview and statistics</p>
         </div>
-        <Badge variant="outline" className="text-sm px-3 py-1">
+        <Badge variant="outline" className="text-sm px-3 py-1 border-gray-300 text-gray-700">
           Read-only Dashboard
         </Badge>
       </div>
 
       {/* System Statistics */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">System Statistics</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">System Statistics</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <Card key={index} className="hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+              <Card key={index} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600">
                     {stat.label}
                   </CardTitle>
-                  <div className={`p-2 rounded-lg ${stat.color}`}>
+                  <div className={`p-2 rounded-lg border ${stat.color}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-semibold text-blue-600">
                     {stats.isLoading ? "..." : stat.value}
                   </div>
                 </CardContent>
@@ -355,26 +355,26 @@ export function DashboardOverview() {
 
       {/* Referral Statistics */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">Referral Statistics</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Referral Statistics</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {referralCards.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <Card key={index} className="hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+              <Card key={index} className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600">
                     {stat.label}
                   </CardTitle>
-                  <div className={`p-2 rounded-lg ${stat.color}`}>
+                  <div className={`p-2 rounded-lg border ${stat.color}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-semibold text-blue-600">
                     {stats.isLoading ? "..." : stat.value}
                   </div>
                   {stat.trend && (
-                    <p className="text-xs text-muted-foreground mt-1">{stat.trend}</p>
+                    <p className="text-xs text-gray-500 mt-1">{stat.trend}</p>
                   )}
                 </CardContent>
               </Card>
@@ -385,20 +385,20 @@ export function DashboardOverview() {
 
       {/* Referral Status Summary */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">Referral Status Summary</h3>
-        <Card>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Referral Status Summary</h3>
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {statusCards.map((status, index) => {
                 const Icon = status.icon
                 return (
                   <div key={index} className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-lg ${status.color}`}>
+                    <div className={`p-3 rounded-lg border ${status.color}`}>
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">{status.label}</p>
-                      <p className="text-2xl font-bold">{stats.isLoading ? "..." : status.value}</p>
+                      <p className="text-sm text-gray-600">{status.label}</p>
+                      <p className="text-2xl font-semibold text-gray-800">{stats.isLoading ? "..." : status.value}</p>
                     </div>
                   </div>
                 )
@@ -410,32 +410,32 @@ export function DashboardOverview() {
 
       {/* Recent System Activities */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">Recent System Activities</h3>
-        <Card>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent System Activities</h3>
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Last 5 Actions</CardTitle>
-            <CardDescription>Recent system activities and changes</CardDescription>
+            <CardTitle className="text-lg font-semibold text-gray-800">Last 5 Actions</CardTitle>
+            <CardDescription className="text-gray-600">Recent system activities and changes</CardDescription>
           </CardHeader>
           <CardContent>
             {activitiesLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading activities...</div>
+              <div className="text-center py-8 text-gray-500">Loading activities...</div>
             ) : recentActivities.length > 0 ? (
               <div className="space-y-4">
                 {recentActivities.map((activity) => {
                   const Icon = getActivityIcon(activity.type)
                   return (
-                    <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className={`p-2 rounded-lg ${getActivityColor(activity.type)} mt-1`}>
+                    <div key={activity.id} className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                      <div className={`p-2 rounded-lg border ${getActivityColor(activity.type)} mt-1`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{activity.description}</p>
+                        <p className="font-medium text-gray-800">{activity.description}</p>
                         <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-gray-500">
                             {activity.user && `by ${activity.user}`}
                           </span>
-                          <span className="text-sm text-muted-foreground">•</span>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-sm text-gray-500">•</span>
+                          <span className="text-sm text-gray-500">
                             {formatTimeAgo(activity.timestamp)}
                           </span>
                         </div>
@@ -445,7 +445,7 @@ export function DashboardOverview() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">No recent activities</div>
+              <div className="text-center py-8 text-gray-500">No recent activities</div>
             )}
           </CardContent>
         </Card>
@@ -453,44 +453,44 @@ export function DashboardOverview() {
 
       {/* Quick Actions */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">Quick Actions</h3>
-        <Card>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Common Tasks</CardTitle>
-            <CardDescription>Frequently used system administration tasks</CardDescription>
+            <CardTitle className="text-lg font-semibold text-gray-800">Common Tasks</CardTitle>
+            <CardDescription className="text-gray-600">Frequently used system administration tasks</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="p-2 bg-blue-100 rounded-lg">
+                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
                     <Hospital className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h4 className="font-semibold">Manage Hospitals</h4>
+                  <h4 className="font-semibold text-gray-800">Manage Hospitals</h4>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   View and manage all hospitals in the system
                 </p>
               </div>
-              <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-2 bg-purple-50 rounded-lg border border-purple-100">
                     <Users className="w-5 h-5 text-purple-600" />
                   </div>
-                  <h4 className="font-semibold">User Management</h4>
+                  <h4 className="font-semibold text-gray-800">User Management</h4>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   Create and manage users (Hospital Admins, Doctors, Liaison Officers)
                 </p>
               </div>
-              <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
+                  <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100">
                     <FileText className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <h4 className="font-semibold">Referral Analytics</h4>
+                  <h4 className="font-semibold text-gray-800">Referral Analytics</h4>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   View detailed referral statistics and reports
                 </p>
               </div>

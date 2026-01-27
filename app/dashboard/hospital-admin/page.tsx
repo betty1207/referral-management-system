@@ -4,11 +4,11 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { HospitalAdminSidebar } from "./sidebar"
 import { DashboardOverview } from "./components/dashboard-overview"
 import { UsersList } from "./components/users-list"
-import { DepartmentsList } from "./components/departments-list"
 import { ReferralsOverview } from "./components/referrals-overview"
+import { HospitalReportsAnalytics } from "./components/hospital-reports-analytics"
 import { useState } from "react"
 
-type HospitalAdminPage = "overview" | "users" | "departments" | "referrals" | "reports" | "audit" | "support"
+type HospitalAdminPage = "overview" | "users" | "referrals" | "reports" | "audit" | "support"
 
 export default function HospitalAdminDashboard() {
   const [currentPage, setCurrentPage] = useState<HospitalAdminPage>("overview")
@@ -19,12 +19,10 @@ export default function HospitalAdminDashboard() {
         return <DashboardOverview />
       case "users":
         return <UsersList />
-      case "departments":
-        return <DepartmentsList />
       case "referrals":
         return <ReferralsOverview />
       case "reports":
-        return <div className="text-center py-12">Reports & Analytics Page (Coming Soon)</div>
+        return <HospitalReportsAnalytics />
       case "audit":
         return <div className="text-center py-12">Audit Logs Page (Coming Soon)</div>
       case "support":

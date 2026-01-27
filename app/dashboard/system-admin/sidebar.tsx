@@ -20,16 +20,20 @@ export function SystemAdminSidebar({ currentPage, onPageChange }: SystemAdminSid
   ]
 
   return (
-    <nav className="p-4 space-y-2">
+    <nav className="p-4 space-y-1">
       {menuItems.map((item) => (
         <Button
           key={item.id}
           variant={currentPage === item.id ? "default" : "ghost"}
-          className="w-full justify-start gap-3"
+          className={`w-full justify-start gap-3 h-10 px-3 rounded-lg transition-all duration-200 ${
+            currentPage === item.id 
+              ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm" 
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-800"
+          }`}
           onClick={() => onPageChange(item.id)}
         >
           <item.icon className="w-4 h-4" />
-          {item.label}
+          <span className="font-medium">{item.label}</span>
         </Button>
       ))}
     </nav>

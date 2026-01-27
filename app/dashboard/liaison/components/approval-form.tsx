@@ -59,7 +59,10 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
   const [rejectReason, setRejectReason] = useState("")
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false)
+  const [completionNote, setCompletionNote] = useState("")
 
   useEffect(() => {
     if (referralId) {
@@ -114,6 +117,39 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
       setError(err.message || "Failed to approve referral")
     } finally {
       setIsApproving(false)
+    }
+  }
+
+  const handleComplete = async () => {
+    if (!referralId || !user?.token) {
+      setError("Referral ID or authentication token missing")
+      return
+    }
+
+    if (!completionNote.trim()) {
+      setError("Please provide a completion note")
+      return
+    }
+
+    try {
+      setIsCompleting(true)
+      setError("")
+      setSuccess("")
+
+      console.log("[ApprovalForm] Completing referral:", referralId, completionNote)
+      await apiClient.completeReferral(referralId, completionNote)
+
+      setSuccess("Referral completed successfully!")
+      setShowCompleteDialog(false)
+      setCompletionNote("")
+      setTimeout(() => {
+        onBack()
+      }, 1500)
+    } catch (err: any) {
+      console.error("Error completing referral:", err)
+      setError(err.message || "Failed to complete referral")
+    } finally {
+      setIsCompleting(false)
     }
   }
 
@@ -318,76 +354,152 @@ export function ApprovalForm({ referralId, onBack }: ApprovalFormProps) {
             </div>
 
             <div className="flex gap-2">
-              <Button
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                onClick={handleApprove}
-                disabled={isApproving || isRejecting}
-              >
-                {isApproving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Approving...
-                  </>
-                ) : (
-                  "Approve"
-                )}
-              </Button>
-              <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="flex-1" disabled={isApproving || isRejecting}>
-                    Reject
+              {referral.status === "APPROVED" ? (
+                <>
+                  <Button
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={() => setShowCompleteDialog(true)}
+                    disabled={isCompleting}
+                  >
+                    {isCompleting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Completing...
+                      </>
+                    ) : (
+                      "Complete"
+                    )}
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Reject Referral</DialogTitle>
-                    <DialogDescription>
-                      Please provide a reason for rejecting this referral. This will be sent to the referring
-                      facility.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="rejectReason">Rejection Reason *</Label>
-                      <Textarea
-                        id="rejectReason"
-                        placeholder="e.g., Specialist available internally, No bed availability, etc."
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        className="h-32"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => setShowRejectDialog(false)}
-                        disabled={isRejecting}
-                      >
-                        Cancel
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={onBack}
+                  >
+                    Back
+                  </Button>
+                </> 
+              ) : (
+                <>
+                  <Button
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    onClick={handleApprove}
+                    disabled={isApproving || isRejecting}
+                  >
+                    {isApproving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Approving...
+                      </>
+                    ) : (
+                      "Approve"
+                    )}
+                  </Button>
+                  <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="flex-1" disabled={isApproving || isRejecting}>
+                        Reject
                       </Button>
-                      <Button
-                        className="flex-1 bg-red-600 hover:bg-red-700"
-                        onClick={handleReject}
-                        disabled={isRejecting || !rejectReason.trim()}
-                      >
-                        {isRejecting ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Rejecting...
-                          </>
-                        ) : (
-                          "Confirm Rejection"
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Reject Referral</DialogTitle>
+                        <DialogDescription>
+                          Please provide a reason for rejecting this referral. This will be sent to the referring
+                          facility.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="rejectReason">Rejection Reason *</Label>
+                          <Textarea
+                            id="rejectReason"
+                            placeholder="e.g., Specialist available internally, No bed availability, etc."
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            className="h-32"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => setShowRejectDialog(false)}
+                            disabled={isRejecting}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="flex-1 bg-red-600 hover:bg-red-700"
+                            onClick={handleReject}
+                            disabled={isRejecting || !rejectReason.trim()}
+                          >
+                            {isRejecting ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Rejecting...
+                              </>
+                            ) : (
+                              "Confirm Rejection"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Complete Referral Dialog */}
+      <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Referral</DialogTitle>
+            <DialogDescription>
+              Provide completion details for this referral
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="completionNote">Completion Note *</Label>
+              <Textarea
+                id="completionNote"
+                placeholder="Provide details about patient treatment and outcome..."
+                value={completionNote}
+                onChange={(e) => setCompletionNote(e.target.value)}
+                className="h-32"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowCompleteDialog(false)}
+                disabled={isCompleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                onClick={handleComplete}
+                disabled={isCompleting || !completionNote.trim()}
+              >
+                {isCompleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Completing...
+                  </>
+                ) : (
+                  "Complete Referral"
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, Users, Plus, Shield, BarChart3, User, History, Activity } from "lucide-react"
+import { LayoutGrid, Users, Plus, Shield, Activity } from "lucide-react"
 
 export type DoctorPage =
   | "overview"
@@ -9,8 +9,6 @@ export type DoctorPage =
   | "create-referral"
   | "specialist-queue"
   | "secure-history"
-  | "reports"
-  | "profile"
 
 interface DoctorSidebarProps {
   currentPage: DoctorPage
@@ -24,8 +22,6 @@ export function DoctorSidebar({ currentPage, onPageChange }: DoctorSidebarProps)
     { id: "create-referral" as DoctorPage, label: "Create Referral", icon: Plus },
     { id: "secure-history" as DoctorPage, label: "Patient History", icon: Shield },
     { id: "specialist-queue" as DoctorPage, label: "Complete Treatment", icon: Activity },
-    { id: "reports" as DoctorPage, label: "Reports", icon: BarChart3 },
-    { id: "profile" as DoctorPage, label: "Profile", icon: User },
   ]
 
   return (
@@ -34,11 +30,15 @@ export function DoctorSidebar({ currentPage, onPageChange }: DoctorSidebarProps)
         <Button
           key={item.id}
           variant={currentPage === item.id ? "default" : "ghost"}
-          className="w-full justify-start gap-3"
+          className={`w-full justify-start gap-3 h-10 px-3 rounded-lg transition-all duration-200 ${
+            currentPage === item.id 
+              ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm" 
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-800"
+          }`}
           onClick={() => onPageChange(item.id)}
         >
           <item.icon className="w-4 h-4" />
-          {item.label}
+          <span className="font-medium">{item.label}</span>
         </Button>
       ))}
     </nav>

@@ -57,7 +57,7 @@ export default function SystemAdminDashboard() {
       case "overview":
         return <DashboardOverview />
       case "hospitals":
-        return <HospitalsSection onSelectHospital={() => {}} />
+        return <HospitalsSection onSelectHospital={(page) => setCurrentPage(page as SystemAdminPage)} />
       case "users":
         return <UserManagement />
       case "reports":

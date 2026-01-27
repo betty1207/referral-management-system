@@ -349,75 +349,80 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
     
     if (showEditForm) {
       return (
-        <Card>
-          <CardHeader>
+        <Card className="bg-white border-gray-200 shadow-sm">
+          <CardHeader className="pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={handleBackToList}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleBackToList}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
               <div>
-                <CardTitle>Edit Hospital</CardTitle>
-                <CardDescription>Update hospital information</CardDescription>
+                <CardTitle className="text-xl font-semibold text-gray-800">Edit Hospital</CardTitle>
+                <CardDescription className="text-gray-600">Update hospital information</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {error && (
-              <Alert variant="destructive" className="mb-4">
+              <Alert variant="destructive" className="mb-4 border-red-200 bg-red-50">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription className="text-red-800">{error}</AlertDescription>
               </Alert>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Hospital Name *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Hospital Name *</label>
                 <input
                   type="text"
                   value={newHospital.name}
                   onChange={(e) => setNewHospital({ ...newHospital, name: e.target.value })}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   placeholder="Enter hospital name"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Region *</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Region *</label>
                 <input
                   type="text"
                   value={newHospital.region}
                   onChange={(e) => setNewHospital({ ...newHospital, region: e.target.value })}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   placeholder="Enter region"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">City *</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">City *</label>
                 <input
                   type="text"
                   value={newHospital.city}
                   onChange={(e) => setNewHospital({ ...newHospital, city: e.target.value })}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   placeholder="Enter city"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Level *</label>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Level *</label>
                 <input
                   type="text"
                   value={newHospital.level}
                   onChange={(e) => setNewHospital({ ...newHospital, level: e.target.value })}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   placeholder="Enter hospital level"
                 />
               </div>
             </div>
             
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-3 mt-6">
               <Button
                 onClick={handleUpdateHospital}
                 disabled={isUpdating}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 font-medium"
               >
                 {isUpdating ? (
                   <>
@@ -435,6 +440,7 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
                 variant="outline"
                 onClick={() => setShowEditForm(false)}
                 disabled={isUpdating}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </Button>
@@ -449,206 +455,224 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={handleBackToList}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleBackToList}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Hospitals
             </Button>
             <div>
-              <h2 className="text-2xl font-bold">{selectedHospital.name}</h2>
-              <p className="text-muted-foreground">Hospital Details and Management</p>
+              <h2 className="text-2xl font-semibold text-gray-800">{selectedHospital.name}</h2>
+              <p className="text-gray-600">Hospital Details and Management</p>
             </div>
           </div>
-          <Badge variant={selectedHospital.isActive !== false ? "default" : "secondary"}>
+          <Badge 
+            variant={selectedHospital.isActive !== false ? "default" : "secondary"}
+            className={selectedHospital.isActive !== false ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-800 border-gray-200"}
+          >
             {selectedHospital.isActive !== false ? "Active" : "Inactive"}
           </Badge>
         </div>
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="border-red-200 bg-red-50">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
           </Alert>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Hospital Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="w-5 h-5" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Building className="w-5 h-5 text-blue-600" />
                 Hospital Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Name</label>
-                <p className="font-semibold">{selectedHospital.name}</p>
+                <label className="text-sm font-medium text-gray-600">Name</label>
+                <p className="font-semibold text-gray-800">{selectedHospital.name}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <p className="font-semibold flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
+                <label className="text-sm font-medium text-gray-600">Email</label>
+                <p className="font-semibold text-gray-800 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gray-400" />
                   {selectedHospital.email}
                 </p>
               </div>
               {selectedHospital.region && selectedHospital.city && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Location</label>
-                  <p className="font-semibold flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
+                  <label className="text-sm font-medium text-gray-600">Location</label>
+                  <p className="font-semibold text-gray-800 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-400" />
                     {selectedHospital.city}, {selectedHospital.region}
                   </p>
                 </div>
               )}
               {selectedHospital.level && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Level</label>
-                  <p className="font-semibold">{selectedHospital.level}</p>
+                  <label className="text-sm font-medium text-gray-600">Level</label>
+                  <p className="font-semibold text-gray-800">{selectedHospital.level}</p>
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
+                <label className="text-sm font-medium text-gray-600">Status</label>
                 <div className="mt-1">
-                  <Badge variant={selectedHospital.isActive !== false ? "default" : "secondary"}>
+                  <Badge 
+                    variant={selectedHospital.isActive !== false ? "default" : "secondary"}
+                    className={selectedHospital.isActive !== false ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-800 border-gray-200"}
+                  >
                     {selectedHospital.isActive !== false ? "Active" : "Inactive"}
                   </Badge>
                 </div>
               </div>
               {selectedHospital.createdAt && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Created</label>
-                  <p className="text-sm">{new Date(selectedHospital.createdAt).toLocaleDateString()}</p>
+                  <label className="text-sm font-medium text-gray-600">Created</label>
+                  <p className="text-sm text-gray-500">{new Date(selectedHospital.createdAt).toLocaleDateString()}</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Staff Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Users className="w-5 h-5 text-blue-600" />
                 Assigned Staff
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               {statsLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading staff statistics...</div>
+                <div className="text-center py-8 text-gray-500">Loading staff statistics...</div>
               ) : stats ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
                     <div className="flex items-center gap-2">
                       <UserCheck className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">Hospital Admins</span>
+                      <span className="font-medium text-gray-800">Hospital Admins</span>
                     </div>
-                    <span className="text-xl font-bold text-blue-600">{stats.adminCount}</span>
+                    <span className="text-xl font-semibold text-blue-600">{stats.adminCount}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-green-600" />
-                      <span className="font-medium">Doctors</span>
+                      <span className="font-medium text-gray-800">Doctors</span>
                     </div>
-                    <span className="text-xl font-bold text-green-600">{stats.doctorCount}</span>
+                    <span className="text-xl font-semibold text-green-600">{stats.doctorCount}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-purple-600" />
-                      <span className="font-medium">Liaison Officers</span>
+                      <span className="font-medium text-gray-800">Liaison Officers</span>
                     </div>
-                    <span className="text-xl font-bold text-purple-600">{stats.liaisonOfficerCount}</span>
+                    <span className="text-xl font-semibold text-purple-600">{stats.liaisonOfficerCount}</span>
                   </div>
-                  <div className="pt-2 border-t">
+                  <div className="pt-2 border-t border-gray-200">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Total Staff</span>
-                      <span className="text-xl font-bold">
+                      <span className="font-medium text-gray-800">Total Staff</span>
+                      <span className="text-xl font-semibold text-blue-600">
                         {stats.adminCount + stats.doctorCount + stats.liaisonOfficerCount}
                       </span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">No staff data available</div>
+                <div className="text-center py-8 text-gray-500">No staff data available</div>
               )}
             </CardContent>
           </Card>
 
           {/* Referral Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <FileText className="w-5 h-5 text-blue-600" />
                 Referral Statistics
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               {statsLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading referral statistics...</div>
+                <div className="text-center py-8 text-gray-500">Loading referral statistics...</div>
               ) : stats ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-indigo-600" />
-                      <span className="font-medium">Total Referrals</span>
+                      <span className="font-medium text-gray-800">Total Referrals</span>
                     </div>
-                    <span className="text-xl font-bold text-indigo-600">{stats.totalReferrals}</span>
+                    <span className="text-xl font-semibold text-indigo-600">{stats.totalReferrals}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 text-amber-600" />
-                      <span className="font-medium">Pending</span>
+                      <span className="font-medium text-gray-800">Pending</span>
                     </div>
-                    <span className="text-xl font-bold text-amber-600">{stats.pendingReferrals}</span>
+                    <span className="text-xl font-semibold text-amber-600">{stats.pendingReferrals}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
                     <div className="flex items-center gap-2">
                       <UserCheck className="w-4 h-4 text-green-600" />
-                      <span className="font-medium">Approved</span>
+                      <span className="font-medium text-gray-800">Approved</span>
                     </div>
-                    <span className="text-xl font-bold text-green-600">{stats.approvedReferrals}</span>
+                    <span className="text-xl font-semibold text-green-600">{stats.approvedReferrals}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
                     <div className="flex items-center gap-2">
                       <UserX className="w-4 h-4 text-red-600" />
-                      <span className="font-medium">Rejected</span>
+                      <span className="font-medium text-gray-800">Rejected</span>
                     </div>
-                    <span className="text-xl font-bold text-red-600">{stats.rejectedReferrals}</span>
+                    <span className="text-xl font-semibold text-red-600">{stats.rejectedReferrals}</span>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">No referral data available</div>
+                <div className="text-center py-8 text-gray-500">No referral data available</div>
               )}
             </CardContent>
           </Card>
         </div>
 
         {/* Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Manage hospital settings and staff</CardDescription>
+        <Card className="bg-white border-gray-200 shadow-sm">
+          <CardHeader className="pb-4 border-b border-gray-100">
+            <CardTitle className="text-lg font-semibold text-gray-800">Quick Actions</CardTitle>
+            <CardDescription className="text-gray-600">Manage hospital settings and staff</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button
                 onClick={() => setShowEditForm(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
                 variant="outline"
               >
                 <Edit className="w-4 h-4" />
                 Update Hospital Info
               </Button>
               <Button
-                onClick={() => onSelectHospital(selectedHospital._id)}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  // Navigate to user management page
+                  onSelectHospital('users')
+                }}
+                className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 font-medium"
               >
-                <Users className="w-4 h-4" />
+                <Users className="w-4 h-4 mr-2" />
                 Manage Hospital Admins
               </Button>
               <Button
                 onClick={() => handleToggleHospitalStatus(selectedHospital._id, selectedHospital.isActive !== false)}
                 disabled={isTogglingStatus === selectedHospital._id}
                 variant={selectedHospital.isActive !== false ? "destructive" : "default"}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${
+                  selectedHospital.isActive !== false 
+                    ? "bg-red-600 text-white hover:bg-red-700" 
+                    : "bg-green-600 text-white hover:bg-green-700"
+                }`}
               >
                 {isTogglingStatus === selectedHospital._id ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -669,12 +693,12 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
   // Loading state
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Hospitals</CardTitle>
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="text-lg font-semibold text-gray-800">Hospitals</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-muted-foreground">Loading hospitals...</div>
+          <div className="text-gray-500">Loading hospitals...</div>
         </CardContent>
       </Card>
     )
@@ -682,98 +706,98 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
 
   return (
     <>
-      <Card id="hospitals">
-        <CardHeader>
+      <Card id="hospitals" className="bg-white border-gray-200 shadow-sm">
+        <CardHeader className="pb-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Hospital className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Hospital className="w-5 h-5 text-blue-600" />
                 Hospitals
               </CardTitle>
-              <CardDescription>Manage all hospitals in the system</CardDescription>
+              <CardDescription className="text-gray-600">Manage all hospitals in the system</CardDescription>
             </div>
             <Button
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 font-medium"
             >
               <Plus className="w-4 h-4" />
               {showCreateForm ? "Cancel" : "Create Hospital"}
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          {error && <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm mb-4">{error}</div>}
+        <CardContent className="pt-6">
+          {error && <div className="p-3 bg-red-50 text-red-800 rounded-lg text-sm mb-4 border border-red-200">{error}</div>}
           
           {/* Create Hospital Form */}
           {showCreateForm && (
-            <Card className="mb-6 border-2 border-dashed border-primary/20">
-              <CardHeader>
-                <CardTitle className="text-lg">Create New Hospital</CardTitle>
-                <CardDescription>Fill in the hospital details below</CardDescription>
+            <Card className="mb-6 border-2 border-dashed border-blue-200 bg-blue-50/30">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-800">Create New Hospital</CardTitle>
+                <CardDescription className="text-gray-600">Fill in the hospital details below</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {createError && (
-                  <Alert variant="destructive">
+                  <Alert variant="destructive" className="border-red-200 bg-red-50">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{createError}</AlertDescription>
+                    <AlertDescription className="text-red-800">{createError}</AlertDescription>
                   </Alert>
                 )}
                 
                 {createSuccess && (
-                  <Alert className="border-green-200 bg-green-50 text-green-800">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{createSuccess}</AlertDescription>
+                  <Alert className="border-green-200 bg-green-50">
+                    <AlertCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">{createSuccess}</AlertDescription>
                   </Alert>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium">Hospital Name *</label>
+                    <label className="block text-sm font-medium text-gray-700">Hospital Name *</label>
                     <input
                       type="text"
                       value={newHospital.name}
                       onChange={(e) => setNewHospital({ ...newHospital, name: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                       placeholder="Enter hospital name"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium">Region *</label>
+                    <label className="block text-sm font-medium text-gray-700">Region *</label>
                     <input
                       type="text"
                       value={newHospital.region}
                       onChange={(e) => setNewHospital({ ...newHospital, region: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                       placeholder="Enter region"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium">City *</label>
+                    <label className="block text-sm font-medium text-gray-700">City *</label>
                     <input
                       type="text"
                       value={newHospital.city}
                       onChange={(e) => setNewHospital({ ...newHospital, city: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                       placeholder="Enter city"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium">Level *</label>
+                    <label className="block text-sm font-medium text-gray-700">Level *</label>
                     <input
                       type="text"
                       value={newHospital.level}
                       onChange={(e) => setNewHospital({ ...newHospital, level: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                       placeholder="Enter hospital level"
                     />
                   </div>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Button
                     onClick={handleCreateHospital}
                     disabled={isCreating}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 font-medium"
                   >
                     {isCreating ? (
                       <>
@@ -801,6 +825,7 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
                       })
                     }}
                     disabled={isCreating}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
                     Cancel
                   </Button>
@@ -817,52 +842,55 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
               return (
                 <div
                   key={hospital._id}
-                  className="p-4 border rounded-lg hover:bg-muted/50 transition"
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 bg-white shadow-sm"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-1">{hospital.name}</h3>
-                      <p className="text-sm text-muted-foreground mb-2">{hospital.email}</p>
+                      <h3 className="font-semibold text-gray-800 mb-1">{hospital.name}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{hospital.email}</p>
                     </div>
-                    <Badge variant={hospital.isActive !== false ? "default" : "secondary"}>
+                    <Badge 
+                      variant={hospital.isActive !== false ? "default" : "secondary"}
+                      className={hospital.isActive !== false ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-800 border-gray-200"}
+                    >
                       {hospital.isActive !== false ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                   
                   <div className="space-y-1 mb-3">
                     {hospital.region && hospital.city && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-500">
                         📍 {hospital.city}, {hospital.region}
                       </p>
                     )}
                     {hospital.level && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-500">
                         🏥 Level: {hospital.level}
                       </p>
                     )}
                     {stats && (
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-gray-500">
                         👥 {stats.adminCount + stats.doctorCount + stats.liaisonOfficerCount} staff • 📋 {stats.totalReferrals} referrals
                       </div>
                     )}
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-full"
+                      className="w-fit px-3 py-1 border-gray-300 text-gray-700 hover:bg-gray-50 text-xs"
                       onClick={() => handleViewHospitalDetails(hospital)}
                     >
                       View Details
                     </Button>
                     <Button
                       size="sm"
-                      variant="default"
-                      className="w-full"
+                      className="w-fit px-3 py-1 bg-blue-600 text-white hover:bg-blue-700 font-medium text-xs"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onSelectHospital(hospital._id)
+                        // Navigate to user management page
+                        onSelectHospital('users')
                       }}
                     >
                       Manage Admins
@@ -870,7 +898,11 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
                     <Button
                       size="sm"
                       variant={hospital.isActive !== false ? "destructive" : "default"}
-                      className="w-full"
+                      className={`w-fit px-3 py-1 text-xs ${
+                        hospital.isActive !== false 
+                          ? "bg-red-600 text-white hover:bg-red-700" 
+                          : "bg-green-600 text-white hover:bg-green-700"
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation()
                         handleToggleHospitalStatus(hospital._id, hospital.isActive !== false)
@@ -888,10 +920,10 @@ export function HospitalsSection({ onSelectHospital }: { onSelectHospital: (id: 
               )
             })
           ) : (
-            <div className="col-span-full text-center py-8 text-muted-foreground">
-              <Hospital className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="mb-2">No hospitals found</p>
-              <p className="text-sm">Click "Create Hospital" to add the first hospital.</p>
+            <div className="col-span-full text-center py-8 text-gray-500">
+              <Hospital className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <p className="mb-2 text-gray-800">No hospitals found</p>
+              <p className="text-sm text-gray-600">Click "Create Hospital" to add the first hospital.</p>
             </div>
           )}
         </div>

@@ -2,47 +2,38 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   Legend,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts"
 import { useAuth } from "@/lib/auth-context"
 import { apiClient } from "@/lib/api-client"
 import { useState, useEffect } from "react"
 
 // Mock data for charts (keep these as they are)
-const referralTrends = [
-  { month: "Jan", referrals: 45, completed: 35 },
-  { month: "Feb", referrals: 52, completed: 42 },
-  { month: "Mar", referrals: 68, completed: 56 },
-  { month: "Apr", referrals: 75, completed: 62 },
-  { month: "May", referrals: 82, completed: 70 },
-  { month: "Jun", referrals: 95, completed: 81 },
+const monthlyReferrals = [
+  { month: "Jan", referrals: 65, completed: 58 },
+  { month: "Feb", referrals: 78, completed: 71 },
+  { month: "Mar", referrals: 82, completed: 75 },
+  { month: "Apr", referrals: 170, completed: 165 },
+  { month: "May", referrals: 160, completed: 155 },
+  { month: "Jun", referrals: 140, completed: 135 },
 ]
 
-const referralByDepartment = [
-  { name: "Emergency", value: 45 },
-  { name: "ICU", value: 32 },
-  { name: "Surgery", value: 28 },
-  { name: "OPD", value: 18 },
-  { name: "Pediatrics", value: 33 },
-]
 
 const referralStatus = [
-  { name: "Approved", value: 1200, fill: "#10b981" },
-  { name: "Pending", value: 156, fill: "#f59e0b" },
-  { name: "Rejected", value: 80, fill: "#ef4444" },
-  { name: "Completed", value: 2843, fill: "#3b82f6" },
+  { name: "Approved", value: 0, fill: "#10b981" },
+  { name: "Pending", value: 0, fill: "#f59e0b" },
+  { name: "Rejected", value: 0, fill: "#ef4444" },
+  { name: "Completed", value: 0, fill: "#3b82f6" },
 ]
 
 export function DashboardOverview() {
@@ -52,6 +43,14 @@ export function DashboardOverview() {
     { label: "Total Liaisons", value: "0", change: "+0 this month" },
     { label: "Active Referrals", value: "156", change: "+12 today" },
     { label: "Completed Referrals", value: "2,843", change: "+89 this month" },
+  ])
+  const [referralStatusData, setReferralStatusData] = useState([
+    { name: "Approved", value: 0, fill: "#10b981" },
+    { name: "Pending", value: 0, fill: "#f59e0b" },
+    { name: "Rejected", value: 0, fill: "#ef4444" },
+    { name: "Completed", value: 0, fill: "#3b82f6" },
+    { name: "Draft", value: 0, fill: "#6b7280" },
+    { name: "Accepted", value: 0, fill: "#8b5cf6" },
   ])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -75,17 +74,46 @@ export function DashboardOverview() {
         const doctorCount = users.filter((u: any) => u.role === "DOCTOR").length
         const liaisonCount = users.filter((u: any) => u.role === "LIAISON_OFFICER").length
         
-        // Fetch referrals for stats
+        // Fetch referrals for stats and status distribution
         let activeReferrals = 0
         let completedReferrals = 0
+        const statusCounts = {
+          APPROVED: 0,
+          PENDING: 0,
+          REJECTED: 0,
+          COMPLETED: 0,
+          DRAFT: 0,
+          ACCEPTED: 0
+        }
         try {
           const referralsResponse = await apiClient.getAllReferrals({ hospitalId: user.hospitalId })
           const referralsData = referralsResponse.data || referralsResponse
           const referrals = Array.isArray(referralsData) ? referralsData : []
+          
+          // Count referrals by status
+          referrals.forEach((referral: any) => {
+            const status = referral.status?.toUpperCase()
+            if (status && statusCounts.hasOwnProperty(status)) {
+              statusCounts[status as keyof typeof statusCounts]++
+            }
+          })
+          
           activeReferrals = referrals.filter((r: any) => 
-            r.status === "PENDING" || r.status === "DRAFT" || r.status === "APPROVED"
+            r.status === "PENDING" || r.status === "DRAFT" || r.status === "APPROVED" || r.status === "ACCEPTED"
           ).length
           completedReferrals = referrals.filter((r: any) => r.status === "COMPLETED").length
+          
+          // Update referral status data for pie chart
+          setReferralStatusData([
+            { name: "Approved", value: statusCounts.APPROVED, fill: "#10b981" },
+            { name: "Pending", value: statusCounts.PENDING, fill: "#f59e0b" },
+            { name: "Rejected", value: statusCounts.REJECTED, fill: "#ef4444" },
+            { name: "Completed", value: statusCounts.COMPLETED, fill: "#3b82f6" },
+            { name: "Draft", value: statusCounts.DRAFT, fill: "#6b7280" },
+            { name: "Accepted", value: statusCounts.ACCEPTED, fill: "#8b5cf6" },
+          ])
+          
+          console.log("[Dashboard] Referral status counts:", statusCounts)
         } catch (err) {
           console.error("[Dashboard] Error fetching referrals:", err)
         }
@@ -147,7 +175,7 @@ export function DashboardOverview() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={referralTrends}>
+              <LineChart data={monthlyReferrals}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -170,7 +198,7 @@ export function DashboardOverview() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={referralStatus}
+                  data={referralStatusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -179,7 +207,7 @@ export function DashboardOverview() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {referralStatus.map((entry, index) => (
+                  {referralStatusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
@@ -189,25 +217,6 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Department Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Referrals by Department</CardTitle>
-          <CardDescription>Current month</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={referralByDepartment}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   )
 }

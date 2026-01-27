@@ -157,6 +157,9 @@ export function UserManagement() {
       setError("")
       const updateData: any = {}
       if (updates.fullName !== undefined) updateData.fullName = updates.fullName
+      if (updates.email !== undefined) updateData.email = updates.email
+      if (updates.role !== undefined) updateData.role = updates.role
+      if (updates.hospitalId !== undefined) updateData.hospitalId = updates.hospitalId
       if (updates.isActive !== undefined) updateData.isActive = updates.isActive
 
       // Check if there are any updates to send
@@ -165,10 +168,12 @@ export function UserManagement() {
         return
       }
 
+      console.log("[UserManagement] Updating user:", userId, updateData)
       await apiClient.updateUser(userId, updateData)
       setEditingUser(null)
       await fetchUsers()
     } catch (err: any) {
+      console.error("[UserManagement] Update error:", err)
       setError(err.message || "Failed to update user")
     }
   }
@@ -234,33 +239,36 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-gray-100">
           <div>
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>Manage all system users (Hospital Admins, Doctors, Liaison Officers)</CardDescription>
+            <CardTitle className="text-xl font-semibold text-gray-800">User Management</CardTitle>
+            <CardDescription className="text-gray-600">Manage all system users (Hospital Admins, Doctors, Liaison Officers)</CardDescription>
           </div>
           <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setFormData({ fullName: "", email: "", password: "", role: "HOSPITAL_ADMIN", hospitalId: "" })}>
+              <Button 
+                onClick={() => setFormData({ fullName: "", email: "", password: "", role: "HOSPITAL_ADMIN", hospitalId: "" })}
+                className="bg-blue-600 text-white hover:bg-blue-700 font-medium"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create User
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription>Add a new user to the system</DialogDescription>
+            <DialogContent className="max-w-md bg-white border-gray-200 shadow-lg">
+              <DialogHeader className="pb-4 border-b border-gray-100">
+                <DialogTitle className="text-lg font-semibold text-gray-800">Create New User</DialogTitle>
+                <DialogDescription className="text-gray-600">Add a new user to the system</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                {error && <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">{error}</div>}
+              <div className="space-y-4 pt-4">
+                {error && <div className="p-3 bg-red-50 text-red-800 rounded-lg text-sm border border-red-200">{error}</div>}
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role *</Label>
+                  <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role *</Label>
                   <Select
                     value={formData.role}
                     onValueChange={(value) => setFormData({ ...formData, role: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -270,14 +278,47 @@ export function UserManagement() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Full Name *</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    placeholder="Enter full name"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="Enter email address"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Enter password"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
                 {(formData.role === "HOSPITAL_ADMIN" || formData.role === "DOCTOR" || formData.role === "LIAISON_OFFICER") && (
                   <div className="space-y-2">
-                    <Label htmlFor="hospitalId">Hospital *</Label>
+                    <Label htmlFor="hospitalId" className="text-sm font-medium text-gray-700">Hospital *</Label>
                     <Select
                       value={formData.hospitalId}
                       onValueChange={(value) => setFormData({ ...formData, hospitalId: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                         <SelectValue placeholder={hospitals.length === 0 ? "No hospitals available" : "Select a hospital"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -301,54 +342,34 @@ export function UserManagement() {
                     )}
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name *</Label>
-                  <Input
-                    id="fullName"
-                    placeholder="John Doe"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  />
-                </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
+              <DialogFooter className="pt-4 border-t border-gray-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCreateModalOpen(false)}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
                   Cancel
                 </Button>
-                <Button type="button" onClick={handleCreateUser}>
+                <Button
+                  type="button"
+                  onClick={handleCreateUser}
+                  className="bg-blue-600 text-white hover:bg-blue-700 font-medium"
+                >
                   Create User
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardHeader>
-        <CardContent>
-          {error && <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm mb-4">{error}</div>}
+        <CardContent className="pt-4">
+          {error && <div className="p-3 bg-red-50 text-red-800 rounded-lg text-sm mb-4 border border-red-200">{error}</div>}
 
           <div className="mb-4">
-            <Label htmlFor="roleFilter">Filter by Role</Label>
+            <Label htmlFor="roleFilter" className="text-sm font-medium text-gray-700">Filter by Role</Label>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-48 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -361,31 +382,31 @@ export function UserManagement() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading users...</div>
+            <div className="text-center py-8 text-gray-500">Loading users...</div>
           ) : filteredUsers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-semibold">Name</th>
-                    <th className="text-left py-3 px-4 font-semibold">Email</th>
-                    <th className="text-left py-3 px-4 font-semibold">Role</th>
-                    <th className="text-left py-3 px-4 font-semibold">Hospital</th>
-                    <th className="text-left py-3 px-4 font-semibold">Status</th>
-                    <th className="text-right py-3 px-4 font-semibold">Actions</th>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-800">Name</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-800">Email</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-800">Role</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-800">Hospital</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-800">Status</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-800">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.map((user) => (
-                    <tr key={user._id} className="border-b hover:bg-muted/50">
-                      <td className="py-3 px-4">{user.fullName}</td>
-                      <td className="py-3 px-4">{user.email}</td>
+                    <tr key={user._id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-3 px-4 text-gray-800">{user.fullName}</td>
+                      <td className="py-3 px-4 text-gray-600">{user.email}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                           {getRoleDisplayName(user.role)}
                         </span>
                       </td>
-                      <td className="py-3 px-4">{user.hospitalName || "N/A"}</td>
+                      <td className="py-3 px-4 text-gray-600">{user.hospitalName || "N/A"}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
                           {user.isActive ? "Active" : "Inactive"}
@@ -397,6 +418,7 @@ export function UserManagement() {
                             variant="outline"
                             size="sm"
                             onClick={() => setEditingUser(user)}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50"
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -408,6 +430,7 @@ export function UserManagement() {
                                 setResettingUserId(user._id)
                                 setNewPassword("")
                               }}
+                              className="border-gray-300 text-gray-700 hover:bg-gray-50"
                             >
                               <KeyRound className="w-4 h-4" />
                             </Button>
@@ -416,6 +439,7 @@ export function UserManagement() {
                             variant="outline"
                             size="sm"
                             onClick={() => setDeletingUserId(user._id)}
+                            className="border-red-300 text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -427,7 +451,7 @@ export function UserManagement() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">No users found</div>
+            <div className="text-center py-8 text-gray-500">No users found</div>
           )}
         </CardContent>
       </Card>
@@ -435,28 +459,47 @@ export function UserManagement() {
       {/* Edit User Modal */}
       {editingUser && (
         <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>Update user details</DialogDescription>
+          <DialogContent className="max-w-md bg-white border-gray-200 shadow-lg">
+            <DialogHeader className="pb-4 border-b border-gray-100">
+              <DialogTitle className="text-lg font-semibold text-gray-800">Edit User</DialogTitle>
+              <DialogDescription className="text-gray-600">Update user details</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              {error && <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">{error}</div>}
+            <div className="space-y-4 pt-4">
+              {error && <div className="p-3 bg-red-50 text-red-800 rounded-lg text-sm border border-red-200">{error}</div>}
               <div className="space-y-2">
-                <Label htmlFor="edit-fullName">Full Name</Label>
+                <Label htmlFor="edit-fullName" className="text-sm font-medium text-gray-700">Full Name</Label>
                 <Input
                   id="edit-fullName"
                   value={editingUser.fullName}
                   onChange={(e) => setEditingUser({ ...editingUser, fullName: e.target.value })}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-email">Email</Label>
-                <Input id="edit-email" type="email" value={editingUser.email} disabled />
+                <Label htmlFor="edit-email" className="text-sm font-medium text-gray-700">Email</Label>
+                <Input 
+                  id="edit-email" 
+                  type="email" 
+                  value={editingUser.email} 
+                  onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-role">Role</Label>
-                <Input id="edit-role" value={getRoleDisplayName(editingUser.role)} disabled />
+                <Label htmlFor="edit-role" className="text-sm font-medium text-gray-700">Role</Label>
+                <Select
+                  value={editingUser.role}
+                  onValueChange={(value) => setEditingUser({ ...editingUser, role: value })}
+                >
+                  <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectValue placeholder={getRoleDisplayName(editingUser.role)} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HOSPITAL_ADMIN">Hospital Admin</SelectItem>
+                    <SelectItem value="DOCTOR">Doctor</SelectItem>
+                    <SelectItem value="LIAISON_OFFICER">Liaison Officer</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -464,17 +507,29 @@ export function UserManagement() {
                   type="checkbox"
                   checked={editingUser.isActive}
                   onChange={(e) => setEditingUser({ ...editingUser, isActive: e.target.checked })}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
-                <Label htmlFor="edit-isActive">Active Status</Label>
+                <Label htmlFor="edit-isActive" className="text-sm font-medium text-gray-700">Active Status</Label>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditingUser(null)}>
+            <DialogFooter className="pt-4 border-t border-gray-100">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setEditingUser(null)}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
                 Cancel
               </Button>
               <Button
                 type="button"
-                onClick={() => handleUpdateUser(editingUser._id, { fullName: editingUser.fullName, isActive: editingUser.isActive })}
+                onClick={() => handleUpdateUser(editingUser._id, { 
+                  fullName: editingUser.fullName, 
+                  email: editingUser.email, 
+                  role: editingUser.role, 
+                  isActive: editingUser.isActive 
+                })}
+                className="bg-blue-600 text-white hover:bg-blue-700 font-medium"
               >
                 Update User
               </Button>
@@ -486,21 +541,27 @@ export function UserManagement() {
       {/* Delete Confirmation Dialog */}
       {deletingUserId && (
         <Dialog open={!!deletingUserId} onOpenChange={() => setDeletingUserId(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete User</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-md bg-white border-gray-200 shadow-lg">
+            <DialogHeader className="pb-4 border-b border-gray-100">
+              <DialogTitle className="text-lg font-semibold text-gray-800">Delete User</DialogTitle>
+              <DialogDescription className="text-gray-600">
                 Are you sure you want to delete this user? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDeletingUserId(null)}>
+            <DialogFooter className="pt-4 border-t border-gray-100">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setDeletingUserId(null)}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
                 Cancel
               </Button>
               <Button
                 type="button"
                 variant="destructive"
                 onClick={() => handleDeleteUser(deletingUserId)}
+                className="bg-red-600 text-white hover:bg-red-700"
               >
                 Delete
               </Button>
@@ -512,40 +573,52 @@ export function UserManagement() {
       {/* Reset Password Dialog */}
       {resettingUserId && (
         <Dialog open={!!resettingUserId} onOpenChange={() => setResettingUserId(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Reset Password</DialogTitle>
-              <DialogDescription>Enter a new password for this user</DialogDescription>
+          <DialogContent className="max-w-md bg-white border-gray-200 shadow-lg">
+            <DialogHeader className="pb-4 border-b border-gray-100">
+              <DialogTitle className="text-lg font-semibold text-gray-800">Reset Password</DialogTitle>
+              <DialogDescription className="text-gray-600">
+                Set a new password for this user.
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              {error && <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">{error}</div>}
+            <div className="space-y-4 pt-4">
+              {error && <div className="p-3 bg-red-50 text-red-800 rounded-lg text-sm border border-red-200">{error}</div>}
               <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700">New Password</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter new password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 pr-10"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setResettingUserId(null)}>
+            <DialogFooter className="pt-4 border-t border-gray-100">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setResettingUserId(null)}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
                 Cancel
               </Button>
-              <Button type="button" onClick={() => handleResetPassword(resettingUserId)}>
+              <Button
+                type="button"
+                onClick={() => handleResetPassword(resettingUserId)}
+                className="bg-blue-600 text-white hover:bg-blue-700 font-medium"
+              >
                 Reset Password
               </Button>
             </DialogFooter>

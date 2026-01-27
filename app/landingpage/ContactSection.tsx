@@ -1,120 +1,147 @@
 export default function ContactSection() {
   return (
-    <section id="contact" className="py-20 relative overflow-hidden" style={{ backgroundColor: '#E6FFFA' }}>
-      {/* Decorative Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 right-10 w-64 h-64 rounded-full opacity-10" style={{ backgroundColor: '#0D9488', filter: 'blur(60px)' }}></div>
-        <div className="absolute bottom-10 left-10 w-64 h-64 rounded-full opacity-10" style={{ backgroundColor: '#2563EB', filter: 'blur(60px)' }}></div>
-      </div>
-
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: '#1E40AF' }}>
-            Contact Us
+    <section id="contact" className="py-20 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-4">
+            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+            <span className="text-sm font-medium text-blue-700">Contact</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-4">
+            Get in Touch
           </h2>
-          <p className="text-2xl font-semibold mb-6" style={{ color: '#374151' }}>
-            Need Help? We're Here for You!
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            We're here to help with any questions about the MOH Referral System
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Left Side - Common Issues */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-transform duration-300">
-            <div className="flex items-center mb-6">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: '#E6FFFA' }}>
-                <span className="text-2xl">❓</span>
+        {/* Contact Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+          {/* Contact Methods */}
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">Contact Information</h3>
+            <div className="space-y-4">
+              {/* Email */}
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600">✉️</span>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">Email Support</p>
+                  <a 
+                    href="mailto:support@moh.gov.et" 
+                    className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                  >
+                    support@moh.gov.et
+                  </a>
+                  <p className="text-sm text-gray-600 mt-1">Professional and easy to remember</p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold" style={{ color: '#1E40AF' }}>Common Issues</h3>
-            </div>
-            <p className="mb-6" style={{ color: '#374151' }}>
-              If you experience any difficulties using MedLink Referral, such as:
-            </p>
-            <ul className="space-y-4">
-              <li className="flex items-start">
-                <span className="mr-3 mt-1 text-xl">🔑</span>
-                <span style={{ color: '#374151' }}>Forgot password or login issues</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-3 mt-1 text-xl">📋</span>
-                <span style={{ color: '#374151' }}>Problems with creating or tracking referrals</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-3 mt-1 text-xl">⚠️</span>
-                <span style={{ color: '#374151' }}>System errors or unexpected behavior</span>
-              </li>
-            </ul>
-            <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: '#E6FFFA' }}>
-              <p className="text-sm font-semibold" style={{ color: '#374151' }}>
-                Our Ministry of Health System Administration Team is ready to assist you promptly.
-              </p>
+
+              {/* Phone */}
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600">📞</span>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">Call Center</p>
+                  <a 
+                    href="tel:+251600012345" 
+                    className="text-blue-600 hover:text-blue-700 transition-colors duration-200"
+                  >
+                    +251 6000 12345
+                  </a>
+                  <p className="text-sm text-gray-600 mt-1">Dedicated line for healthcare staff support</p>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600">📍</span>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">Location</p>
+                  <p className="text-gray-700">Addis Ababa, Ethiopia</p>
+                  <p className="text-sm text-gray-600 mt-1">Ministry of Health Headquarters</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Side - Contact Information */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-transform duration-300">
-            <div className="flex items-center mb-6">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: '#E6FFFA' }}>
-                <span className="text-2xl">📞</span>
-              </div>
-              <h3 className="text-xl font-bold" style={{ color: '#1E40AF' }}>How to Contact Us</h3>
-            </div>
-            
-            <div className="space-y-6">
-              {/* Email */}
-              <div className="p-6 rounded-xl border-2 hover:shadow-lg transition-shadow" style={{ borderColor: '#0D9488', backgroundColor: '#F0FDFA' }}>
-                <div className="flex items-center mb-3">
-                  <span className="text-3xl mr-4">✉️</span>
-                  <div>
-                    <p className="text-sm font-semibold mb-1" style={{ color: '#374151' }}>Email Support</p>
-                    <a 
-                      href="mailto:support@medlinkhealth.gov.et" 
-                      className="text-lg font-bold hover:underline transition-all"
-                      style={{ color: '#0D9488' }}
-                    >
-                      support@medlinkhealth.gov.et
-                    </a>
-                  </div>
+          {/* Support Channels */}
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">Support Channels</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <span className="text-green-600">💬</span>
                 </div>
-                <p className="text-sm mt-2" style={{ color: '#6B7280' }}>Professional and easy to remember</p>
+                <p className="font-medium text-gray-800">Live Chat</p>
+                <p className="text-sm text-gray-600">Real-time assistance</p>
               </div>
-
-              {/* Call Center */}
-              <div className="p-6 rounded-xl border-2 hover:shadow-lg transition-shadow" style={{ borderColor: '#2563EB', backgroundColor: '#EFF6FF' }}>
-                <div className="flex items-center mb-3">
-                  <span className="text-3xl mr-4">📞</span>
-                  <div>
-                    <p className="text-sm font-semibold mb-1" style={{ color: '#374151' }}>Call Center</p>
-                    <a 
-                      href="tel:+251600012345" 
-                      className="text-lg font-bold hover:underline transition-all"
-                      style={{ color: '#2563EB' }}
-                    >
-                      +251 6000 12345
-                    </a>
-                  </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <span className="text-blue-600">📚</span>
                 </div>
-                <p className="text-sm mt-2" style={{ color: '#6B7280' }}>Dedicated line for healthcare staff support</p>
+                <p className="font-medium text-gray-800">Documentation</p>
+                <p className="text-sm text-gray-600">User guides and manuals</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <span className="text-orange-600">🎓</span>
+                </div>
+                <p className="font-medium text-gray-800">Training</p>
+                <p className="text-sm text-gray-600">System training sessions</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <span className="text-purple-600">🔄</span>
+                </div>
+                <p className="font-medium text-gray-800">System Updates</p>
+                <p className="text-sm text-gray-600">Latest features and news</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tip Section */}
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border-l-4" style={{ borderColor: '#0D9488' }}>
-            <div className="flex items-start">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0" style={{ backgroundColor: '#0D9488' }}>
-                <span className="text-2xl text-white">💡</span>
-              </div>
-              <div>
-                <h4 className="text-lg font-bold mb-2" style={{ color: '#1E40AF' }}>Tip</h4>
-                <p style={{ color: '#374151' }}>
-                  Please include your <strong style={{ color: '#0D9488' }}>name</strong>, <strong style={{ color: '#0D9488' }}>role</strong>, and <strong style={{ color: '#0D9488' }}>facility</strong> when contacting us so we can assist you faster.
-                </p>
-              </div>
+        {/* Common Issues */}
+        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-16">
+          <h3 className="text-xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2">How do I create a referral?</h4>
+              <p className="text-gray-600 text-sm">
+                Log in to your dashboard and click "Create Referral" to start the process.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2">What information is required?</h4>
+              <p className="text-gray-600 text-sm">
+                Patient details, medical history, and reason for referral are required.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2">How long does approval take?</h4>
+              <p className="text-gray-600 text-sm">
+                Most referrals are processed within 24-48 hours during business days.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800 mb-2">Can I track referral status?</h4>
+              <p className="text-gray-600 text-sm">
+                Yes, real-time tracking is available in your dashboard.
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="text-center">
+          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200">
+            Contact Support Team
+          </button>
         </div>
       </div>
     </section>

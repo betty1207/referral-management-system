@@ -322,15 +322,15 @@ export function ReportsAnalytics() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <BarChart3 className="w-5 h-5 text-blue-600" />
             Reports & Analytics
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-muted-foreground">Loading report data...</div>
+          <div className="text-gray-500">Loading report data...</div>
         </CardContent>
       </Card>
     )
@@ -343,48 +343,48 @@ export function ReportsAnalytics() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <BarChart3 className="w-6 h-6" />
+        <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 text-blue-600" />
           Reports & Analytics
         </h2>
-        <p className="text-muted-foreground">Generate comprehensive reports and insights</p>
+        <p className="text-gray-600">Generate comprehensive reports and insights</p>
       </div>
 
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="border-red-200 bg-red-50">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription className="text-red-800">{error}</AlertDescription>
         </Alert>
       )}
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-4 h-4" />
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <Filter className="w-4 h-4 text-blue-600" />
             Report Filters
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Report Type</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Report Type</label>
               <select
                 value={filters.reportType}
                 onChange={(e) => setFilters({ ...filters, reportType: e.target.value as "referral" | "user-activity" })}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
               >
                 <option value="referral">Referral Reports</option>
                 <option value="user-activity">User Activity Reports</option>
               </select>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium mb-2">Date Range</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Date Range</label>
               <select
                 value={filters.dateRange}
                 onChange={(e) => setFilters({ ...filters, dateRange: e.target.value as any })}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
               >
                 <option value="7days">Last 7 Days</option>
                 <option value="30days">Last 30 Days</option>
@@ -395,33 +395,33 @@ export function ReportsAnalytics() {
             
             {filters.dateRange === "custom" && (
               <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Start Date</label>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Start Date</label>
                   <input
                     type="date"
                     value={filters.startDate || ""}
                     onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">End Date</label>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">End Date</label>
                   <input
                     type="date"
                     value={filters.endDate || ""}
                     onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   />
                 </div>
               </>
             )}
             
-            <div>
-              <label className="block text-sm font-medium mb-2">Hospital</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Hospital</label>
               <select
                 value={filters.hospitalId || ""}
                 onChange={(e) => setFilters({ ...filters, hospitalId: e.target.value || undefined })}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
               >
                 <option value="">All Hospitals</option>
                 {hospitals.map(hospital => (
@@ -434,12 +434,12 @@ export function ReportsAnalytics() {
             
             {filters.reportType === "referral" && (
               <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Status</label>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
                   <select
                     value={filters.status || ""}
                     onChange={(e) => setFilters({ ...filters, status: e.target.value || undefined })}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   >
                     <option value="">All Statuses</option>
                     <option value="PENDING">Pending</option>
@@ -448,12 +448,12 @@ export function ReportsAnalytics() {
                   </select>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Urgency</label>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Urgency</label>
                   <select
                     value={filters.urgency || ""}
                     onChange={(e) => setFilters({ ...filters, urgency: e.target.value || undefined })}
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 h-10"
                   >
                     <option value="">All Urgencies</option>
                     <option value="ROUTINE">Routine</option>
@@ -465,10 +465,10 @@ export function ReportsAnalytics() {
             )}
           </div>
           
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-3 mt-4">
             <Button
               onClick={exportToPDF}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
               variant="outline"
             >
               <FileDown className="w-4 h-4" />
@@ -476,7 +476,7 @@ export function ReportsAnalytics() {
             </Button>
             <Button
               onClick={exportToExcel}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 font-medium"
             >
               <FileSpreadsheet className="w-4 h-4" />
               Export Excel
@@ -489,40 +489,40 @@ export function ReportsAnalytics() {
       {filters.reportType === "referral" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Status Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="w-4 h-4" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <PieChart className="w-4 h-4 text-blue-600" />
                 Referral Status Breakdown
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-600" />
-                    <span className="font-medium">Pending</span>
+                    <span className="font-medium text-gray-800">Pending</span>
                   </div>
-                  <span className="text-xl font-bold text-amber-600">{referralStats.byStatus.pending}</span>
+                  <span className="text-xl font-semibold text-amber-600">{referralStats.byStatus.pending}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="font-medium">Approved</span>
+                    <span className="font-medium text-gray-800">Approved</span>
                   </div>
-                  <span className="text-xl font-bold text-green-600">{referralStats.byStatus.approved}</span>
+                  <span className="text-xl font-semibold text-green-600">{referralStats.byStatus.approved}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
                   <div className="flex items-center gap-2">
                     <XCircle className="w-4 h-4 text-red-600" />
-                    <span className="font-medium">Rejected</span>
+                    <span className="font-medium text-gray-800">Rejected</span>
                   </div>
-                  <span className="text-xl font-bold text-red-600">{referralStats.byStatus.rejected}</span>
+                  <span className="text-xl font-semibold text-red-600">{referralStats.byStatus.rejected}</span>
                 </div>
-                <div className="pt-2 border-t">
+                <div className="pt-2 border-t border-gray-200">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Total Referrals</span>
-                    <span className="text-xl font-bold">{referralStats.total}</span>
+                    <span className="font-medium text-gray-800">Total Referrals</span>
+                    <span className="text-xl font-semibold text-blue-600">{referralStats.total}</span>
                   </div>
                 </div>
               </div>
@@ -530,81 +530,81 @@ export function ReportsAnalytics() {
           </Card>
 
           {/* Urgency Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-4 h-4" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Activity className="w-4 h-4 text-blue-600" />
                 Referral Urgency Breakdown
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium">Routine</span>
+                    <span className="font-medium text-gray-800">Routine</span>
                   </div>
-                  <span className="text-xl font-bold text-blue-600">{referralStats.byUrgency.routine}</span>
+                  <span className="text-xl font-semibold text-blue-600">{referralStats.byUrgency.routine}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-100">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-orange-600" />
-                    <span className="font-medium">Urgent</span>
+                    <span className="font-medium text-gray-800">Urgent</span>
                   </div>
-                  <span className="text-xl font-bold text-orange-600">{referralStats.byUrgency.urgent}</span>
+                  <span className="text-xl font-semibold text-orange-600">{referralStats.byUrgency.urgent}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
                   <div className="flex items-center gap-2">
                     <XCircle className="w-4 h-4 text-red-600" />
-                    <span className="font-medium">Emergency</span>
+                    <span className="font-medium text-gray-800">Emergency</span>
                   </div>
-                  <span className="text-xl font-bold text-red-600">{referralStats.byUrgency.emergency}</span>
+                  <span className="text-xl font-semibold text-red-600">{referralStats.byUrgency.emergency}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Hospital Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Hospital className="w-4 h-4" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Hospital className="w-4 h-4 text-blue-600" />
                 Hospital Performance
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-3">
                 {Object.entries(referralStats.byHospital).map(([hospitalName, count]) => (
-                  <div key={hospitalName} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="font-medium">{hospitalName}</span>
-                    <Badge variant="secondary">{count} referrals</Badge>
+                  <div key={hospitalName} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="font-medium text-gray-800">{hospitalName}</span>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">{count} referrals</Badge>
                   </div>
                 ))}
                 {Object.keys(referralStats.byHospital).length === 0 && (
-                  <div className="text-center py-4 text-muted-foreground">No referrals found</div>
+                  <div className="text-center py-4 text-gray-500">No referrals found</div>
                 )}
               </div>
             </CardContent>
           </Card>
 
           {/* Rejection Reasons */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <XCircle className="w-4 h-4" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <XCircle className="w-4 h-4 text-blue-600" />
                 Rejection Reasons Summary
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-3">
                 {Object.entries(referralStats.rejectionReasons).map(([reason, count]) => (
-                  <div key={reason} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                    <span className="font-medium text-sm">{reason}</span>
-                    <Badge variant="destructive">{count}</Badge>
+                  <div key={reason} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
+                    <span className="font-medium text-sm text-gray-800">{reason}</span>
+                    <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">{count}</Badge>
                   </div>
                 ))}
                 {Object.keys(referralStats.rejectionReasons).length === 0 && (
-                  <div className="text-center py-4 text-muted-foreground">No rejections found</div>
+                  <div className="text-center py-4 text-gray-500">No rejections found</div>
                 )}
               </div>
             </CardContent>
@@ -616,32 +616,32 @@ export function ReportsAnalytics() {
       {filters.reportType === "user-activity" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* User Role Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Users className="w-4 h-4 text-blue-600" />
                 User Role Breakdown
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-4">
                 {Object.entries(userStats.byRole).map(([role, count]) => (
-                  <div key={role} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <div key={role} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">{role.replace('_', ' ')}</span>
+                      <span className="font-medium text-gray-800">{role.replace('_', ' ')}</span>
                     </div>
-                    <span className="text-xl font-bold text-blue-600">{count}</span>
+                    <span className="text-xl font-semibold text-blue-600">{count}</span>
                   </div>
                 ))}
-                <div className="pt-2 border-t">
+                <div className="pt-2 border-t border-gray-200">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Total Users</span>
-                    <span className="text-xl font-bold">{userStats.total}</span>
+                    <span className="font-medium text-gray-800">Total Users</span>
+                    <span className="text-xl font-semibold text-blue-600">{userStats.total}</span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="font-medium">Active Users (7 days)</span>
-                    <span className="text-lg font-bold text-green-600">{userStats.activeUsers}</span>
+                    <span className="font-medium text-gray-800">Active Users (7 days)</span>
+                    <span className="text-lg font-semibold text-green-600">{userStats.activeUsers}</span>
                   </div>
                 </div>
               </div>
@@ -649,23 +649,23 @@ export function ReportsAnalytics() {
           </Card>
 
           {/* Users by Hospital */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Hospital className="w-4 h-4" />
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <Hospital className="w-4 h-4 text-blue-600" />
                 Users by Hospital
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="space-y-3">
                 {Object.entries(userStats.byHospital).map(([hospitalName, count]) => (
-                  <div key={hospitalName} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="font-medium">{hospitalName}</span>
-                    <Badge variant="secondary">{count} users</Badge>
+                  <div key={hospitalName} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="font-medium text-gray-800">{hospitalName}</span>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">{count} users</Badge>
                   </div>
                 ))}
                 {Object.keys(userStats.byHospital).length === 0 && (
-                  <div className="text-center py-4 text-muted-foreground">No users found</div>
+                  <div className="text-center py-4 text-gray-500">No users found</div>
                 )}
               </div>
             </CardContent>
@@ -674,51 +674,51 @@ export function ReportsAnalytics() {
       )}
 
       {/* Example Reports */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
+      <Card className="bg-white border-gray-200 shadow-sm">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <FileText className="w-4 h-4 text-blue-600" />
             Example Reports
           </CardTitle>
-          <CardDescription>Pre-configured report templates</CardDescription>
+          <CardDescription className="text-gray-600">Pre-configured report templates</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="w-5 h-5 text-blue-600" />
-                <h4 className="font-semibold">Monthly Referral Summary</h4>
+                <h4 className="font-semibold text-gray-800">Monthly Referral Summary</h4>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-gray-600 mb-3">
                 Complete overview of all referrals in the past month including status breakdown and hospital performance.
               </p>
-              <Button size="sm" variant="outline" className="w-full">
+              <Button size="sm" variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50">
                 Generate Report
               </Button>
             </div>
             
-            <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-5 h-5 text-green-600" />
-                <h4 className="font-semibold">Hospital Performance Report</h4>
+                <h4 className="font-semibold text-gray-800">Hospital Performance Report</h4>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-gray-600 mb-3">
                 Detailed analysis of referral volumes and outcomes by hospital with performance metrics.
               </p>
-              <Button size="sm" variant="outline" className="w-full">
+              <Button size="sm" variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50">
                 Generate Report
               </Button>
             </div>
             
-            <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <XCircle className="w-5 h-5 text-red-600" />
-                <h4 className="font-semibold">Rejection Reasons Summary</h4>
+                <h4 className="font-semibold text-gray-800">Rejection Reasons Summary</h4>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-gray-600 mb-3">
                 Analysis of referral rejection reasons with trends and recommendations for improvement.
               </p>
-              <Button size="sm" variant="outline" className="w-full">
+              <Button size="sm" variant="outline" className="w-full border-gray-300 text-gray-700 hover:bg-gray-50">
                 Generate Report
               </Button>
             </div>

@@ -24,10 +24,6 @@ export default function DoctorDashboard() {
         return <CompleteTreatmentPage />
       case "secure-history":
         return <SecureHistoryViewer />
-      case "reports":
-        return <div className="p-6">Reports (Coming Soon)</div>
-      case "profile":
-        return <div className="p-6">Profile (Coming Soon)</div>
       default:
         return <DashboardOverview />
     }
