@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Users, Building2, BarChart3, Notebook as LogBook, HelpCircle, LayoutGrid } from "lucide-react"
+import { Users, Hospital, BarChart3, Settings, LayoutGrid } from "lucide-react"
 
-type SystemAdminPage = "overview" | "users" | "facilities" | "reports" | "audit" | "support"
+export type SystemAdminPage = "overview" | "hospitals" | "users" | "reports" | "settings"
 
 interface SystemAdminSidebarProps {
   currentPage: SystemAdminPage
@@ -13,11 +13,10 @@ interface SystemAdminSidebarProps {
 export function SystemAdminSidebar({ currentPage, onPageChange }: SystemAdminSidebarProps) {
   const menuItems = [
     { id: "overview" as SystemAdminPage, label: "Dashboard", icon: LayoutGrid },
+    { id: "hospitals" as SystemAdminPage, label: "Hospitals", icon: Hospital },
     { id: "users" as SystemAdminPage, label: "User Management", icon: Users },
-    { id: "facilities" as SystemAdminPage, label: "Facility Management", icon: Building2 },
-    { id: "reports" as SystemAdminPage, label: "Reports", icon: BarChart3 },
-    { id: "audit" as SystemAdminPage, label: "Audit Logs", icon: LogBook },
-    { id: "support" as SystemAdminPage, label: "Support", icon: HelpCircle },
+    { id: "reports" as SystemAdminPage, label: "Reports & Analytics", icon: BarChart3 },
+    { id: "settings" as SystemAdminPage, label: "System Settings", icon: Settings },
   ]
 
   return (

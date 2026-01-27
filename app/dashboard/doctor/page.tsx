@@ -1,23 +1,13 @@
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { DoctorSidebar } from "./sidebar"
+import { DoctorSidebar, type DoctorPage } from "./sidebar"
 import { DashboardOverview } from "./components/dashboard-overview"
 import { PatientsList } from "./components/patients-list"
 import { CreateReferral } from "./components/create-referral"
-import { MyReferrals } from "./components/my-referrals"
-import { ReferralStatus } from "./components/referral-status"
+import { SecureHistoryViewer } from "./components/secure-history-viewer"
+import { CompleteTreatmentPage } from "./components/complete-treatment"
 import { useState } from "react"
-
-type DoctorPage =
-  | "overview"
-  | "patients"
-  | "create-referral"
-  | "my-referrals"
-  | "status"
-  | "reports"
-  | "profile"
-  | "support"
 
 export default function DoctorDashboard() {
   const [currentPage, setCurrentPage] = useState<DoctorPage>("overview")
@@ -30,16 +20,14 @@ export default function DoctorDashboard() {
         return <PatientsList />
       case "create-referral":
         return <CreateReferral />
-      case "my-referrals":
-        return <MyReferrals />
-      case "status":
-        return <ReferralStatus />
+      case "specialist-queue":
+        return <CompleteTreatmentPage />
+      case "secure-history":
+        return <SecureHistoryViewer />
       case "reports":
-        return <div className="text-center py-12">Reports Page (Coming Soon)</div>
+        return <div className="p-6">Reports (Coming Soon)</div>
       case "profile":
-        return <div className="text-center py-12">Profile Settings (Coming Soon)</div>
-      case "support":
-        return <div className="text-center py-12">Support (Coming Soon)</div>
+        return <div className="p-6">Profile (Coming Soon)</div>
       default:
         return <DashboardOverview />
     }

@@ -1,17 +1,16 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { LayoutGrid, Users, Plus, CheckCircle2, BarChart3, User, HelpCircle } from "lucide-react"
+import { LayoutGrid, Users, Plus, Shield, BarChart3, User, History, Activity } from "lucide-react"
 
-type DoctorPage =
+export type DoctorPage =
   | "overview"
   | "patients"
   | "create-referral"
-  | "my-referrals"
-  | "status"
+  | "specialist-queue"
+  | "secure-history"
   | "reports"
   | "profile"
-  | "support"
 
 interface DoctorSidebarProps {
   currentPage: DoctorPage
@@ -23,15 +22,14 @@ export function DoctorSidebar({ currentPage, onPageChange }: DoctorSidebarProps)
     { id: "overview" as DoctorPage, label: "Dashboard", icon: LayoutGrid },
     { id: "patients" as DoctorPage, label: "Patients", icon: Users },
     { id: "create-referral" as DoctorPage, label: "Create Referral", icon: Plus },
-    { id: "my-referrals" as DoctorPage, label: "My Referrals", icon: CheckCircle2 },
-    { id: "status" as DoctorPage, label: "Referral Status", icon: BarChart3 },
+    { id: "secure-history" as DoctorPage, label: "Patient History", icon: Shield },
+    { id: "specialist-queue" as DoctorPage, label: "Complete Treatment", icon: Activity },
     { id: "reports" as DoctorPage, label: "Reports", icon: BarChart3 },
     { id: "profile" as DoctorPage, label: "Profile", icon: User },
-    { id: "support" as DoctorPage, label: "Support", icon: HelpCircle },
   ]
 
   return (
-    <nav className="p-4 space-y-2">
+    <nav className="p-4 space-y-1">
       {menuItems.map((item) => (
         <Button
           key={item.id}

@@ -1,6 +1,22 @@
-import { redirect } from "next/navigation"
+import { Navbar, Footer } from '@/components/layout';
+import {
+  HeroSection,
+  FeaturesSection,
+  AboutSection,
+  HowItWorksSection,
+  ContactSection,
+} from '@/app/landingpage';
 
 export default function Home() {
-  // Redirect to login on initial load
-  redirect("/login")
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <HeroSection />
+      <FeaturesSection />
+      <AboutSection />
+      <HowItWorksSection />
+      <ContactSection />
+      <Footer />
+    </div>
+  );
 }
