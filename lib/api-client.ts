@@ -230,14 +230,8 @@ class ApiClient {
     return this.get<any>(`/patients/${patientId}`)
   }
 
-  async updatePatient(patientId: string, data: any) {
-    return this.patch<any>(`/patients/${patientId}`, data)
-  }
-
   // Referral methods
   async createReferral(data: {
-    fromHospital: string
-    doctorName: string
     patientId?: string
     patient: {
       fullName: string
@@ -260,42 +254,20 @@ class ApiClient {
     return this.post<any>("/referrals", data)
   }
 
-  async createDraftReferral(data: {
-    fromHospital: string
-    doctorName: string
-    patient: {
-      fullName: string
-      sex: "Male" | "Female"
-      dateOfBirth: string
-      phone: string
-      nationalId?: string
-      address?: string
-    }
-    toHospital?: string
-    patientName: string
-    patientPhone: string
-    urgency: "ROUTINE" | "URGENT" | "EMERGENCY"
-    reasonForReferral: string
-    clinicalNotes?: string
-    attachments?: string[]
-    requiredSpecialty?: string
-    requiredBedType?: string
-  }) {
-    return this.post<any>("/referrals/draft", data)
-  }
-
   async getMyReferrals() {
     return this.get<any>("/referrals/my")
   }
 
-  async getAllReferrals(params?: { 
-    hospitalId?: string; 
-    status?: string;
-    fromHospital?: string;
-    toHospital?: string;
-    urgency?: string;
-    limit?: number;
-    skip?: number;
+  async getAllReferrals(params?: {
+    hospitalId?: string
+    status?: string
+    fromHospital?: string
+    toHospital?: string
+    urgency?: string
+    // limit?: number
+    // skip?: number
+    // limit?: number;
+    // skip?: number;
   }) {
     return this.get<any>("/referrals", params)
   }
